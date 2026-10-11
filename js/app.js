@@ -296,7 +296,7 @@ async function renderOverview() {
     if (!sortControl.contains(event.target)) setSortMenuOpen(false);
   };
   sortControl.addEventListener('focusout', event => {
-    if (!sortControl.contains(event.relatedTarget)) setSortMenuOpen(false);
+    if (event.relatedTarget && !sortControl.contains(event.relatedTarget)) setSortMenuOpen(false);
   });
   document.addEventListener('pointerdown', closeSortMenuOutside);
   cleanupView = () => document.removeEventListener('pointerdown', closeSortMenuOutside);
