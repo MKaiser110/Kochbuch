@@ -136,7 +136,7 @@ body {
   background-repeat: no-repeat;
   background-position: 14px center;
   color: var(--ink);
-  font-size: .94rem;
+  font-size: 16px;
   transition: border-color 150ms ease, background-color 150ms ease;
 }
 #search::placeholder, #ingredient-filter-search::placeholder { color: #a0a4a8; }
@@ -406,17 +406,23 @@ body {
   padding: 16px 8px 8px;
   background: rgb(20 22 24 / 30%);
   backdrop-filter: blur(3px);
+  overscroll-behavior: contain;
 }
 .overlay[hidden] { display: none; }
 .sheet, .form {
   width: min(100%, 620px);
   max-height: min(88vh, 820px);
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
   padding: 24px 22px calc(24px + env(safe-area-inset-bottom));
   border: 1px solid var(--line);
   border-radius: 24px;
   background: var(--surface);
   box-shadow: 0 18px 60px rgb(0 0 0 / 12%);
+}
+@supports (height: 100dvh) {
+  .sheet, .form { max-height: min(88dvh, 820px); }
 }
 .sheet h2 { margin: 0 0 10px; font-size: 1.2rem; font-weight: 650; letter-spacing: -.025em; }
 .sheet-option {
