@@ -421,6 +421,12 @@ body {
   background: var(--surface);
   box-shadow: 0 18px 60px rgb(0 0 0 / 12%);
 }
+.form {
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
+}
+#recipe-form input[type="file"] { max-width: 100%; }
 @supports (height: 100dvh) {
   .sheet, .form { max-height: min(88dvh, 820px); }
 }
