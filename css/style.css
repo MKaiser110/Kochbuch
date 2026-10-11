@@ -52,7 +52,7 @@ body {
 
 .topbar {
   position: sticky;
-  top: 8px;
+  top: 0;
   z-index: 5;
   display: flex;
   align-items: center;
@@ -567,7 +567,7 @@ body.cook-mode .topbar-actions { visibility: hidden; }
 
 @media (max-width: 420px) {
   body { padding: 5px; }
-  .topbar { top: 5px; min-height: 70px; padding-inline: 16px; border-radius: 23px 23px 0 0; }
+  .topbar { top: 0; min-height: 70px; padding-inline: 16px; border-radius: 23px 23px 0 0; }
   #app { min-height: calc(100dvh - 80px); padding: 8px 16px 26px; border-radius: 0 0 23px 23px; }
   .controls-row { gap: 5px; }
   .ingredient-filter-btn { padding-inline: 10px; font-size: .76rem; }
