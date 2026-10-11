@@ -109,6 +109,7 @@ let cleanupView = null;
 // Zähler pro Navigation: asynchrone Render-Funktionen prüfen nach jedem await,
 // ob inzwischen woandershin navigiert wurde, und brechen dann ab.
 let routeSeq = 0;
+let visualViewportCleanup = null;
 
 function encodePayload(value) {
   const json = JSON.stringify(value);
@@ -393,8 +394,13 @@ function sortRecipes(list, sort) {
   return sorted;
 }
 
+function normalizeIngredientName(name) {
+  return String(name || '').normalize('NFKC').replace(/\s+/g, ' ').trim().toLocaleLowerCase('de');
+}
+
 async function renderGrid() {
   const all = await getAllRecipes();
+  const selectedIngredientNames = new Set([...selectedIngredients].map(normalizeIngredientName));
   const filtered = sortRecipes(all, currentSort).filter(r => {
     if (currentTag && !r.tags.includes(currentTag)) return false;
     if (currentSearch) {
@@ -403,9 +409,9 @@ async function renderGrid() {
       if (!inTitle && !inIngredients) return false;
     }
     if (selectedIngredients.size > 0) {
-      const recipeIngredients = r.ingredients.map(ing => (ing.name || '').trim().toLocaleLowerCase('de'));
-      const includesSelectedIngredients = [...selectedIngredients].every(selected =>
-        recipeIngredients.some(name => name.includes(selected.trim().toLocaleLowerCase('de')))
+      const recipeIngredients = new Set(r.ingredients.map(ing => normalizeIngredientName(ing.name)));
+      const includesSelectedIngredients = [...selectedIngredientNames].every(selected =>
+        recipeIngredients.has(selected)
       );
       if (!includesSelectedIngredients) return false;
     }
@@ -838,8 +844,40 @@ function openSheet(templateId, wire) {
   overlay.innerHTML = '';
   overlay.appendChild(tpl);
   overlay.hidden = false;
+  trackVisualViewport();
   overlay.addEventListener('click', onOverlayClick);
   wire(overlay);
+}
+
+function trackVisualViewport() {
+  if (visualViewportCleanup) {
+    visualViewportCleanup();
+    visualViewportCleanup = null;
+  }
+  const viewport = window.visualViewport;
+  if (!viewport) return;
+
+  const update = () => {
+    overlay.style.top = `${viewport.offsetTop}px`;
+    overlay.style.height = `${viewport.height}px`;
+    overlay.style.bottom = 'auto';
+    overlay.style.setProperty(
+      '--overlay-content-max-height',
+      `${Math.min(viewport.height * 0.88, 820)}px`
+    );
+  };
+
+  update();
+  viewport.addEventListener('resize', update);
+  viewport.addEventListener('scroll', update);
+  visualViewportCleanup = () => {
+    viewport.removeEventListener('resize', update);
+    viewport.removeEventListener('scroll', update);
+    overlay.style.removeProperty('top');
+    overlay.style.removeProperty('height');
+    overlay.style.removeProperty('bottom');
+    overlay.style.removeProperty('--overlay-content-max-height');
+  };
 }
 
 function onOverlayClick(e) {
@@ -847,6 +885,10 @@ function onOverlayClick(e) {
 }
 
 function closeSheet() {
+  if (visualViewportCleanup) {
+    visualViewportCleanup();
+    visualViewportCleanup = null;
+  }
   overlay.hidden = true;
   overlay.innerHTML = '';
   overlay.removeEventListener('click', onOverlayClick);

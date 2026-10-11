@@ -430,6 +430,9 @@ body {
 @supports (height: 100dvh) {
   .sheet, .form { max-height: min(88dvh, 820px); }
 }
+.overlay .sheet, .overlay .form {
+  max-height: var(--overlay-content-max-height, min(88dvh, 820px));
+}
 .sheet h2 { margin: 0 0 10px; font-size: 1.2rem; font-weight: 650; letter-spacing: -.025em; }
 .sheet-option {
   display: flex;
