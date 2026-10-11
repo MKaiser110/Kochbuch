@@ -109,7 +109,7 @@ export function extractFromHtml(html, sourceUrl) {
   const ldRecipes = findLdJsonRecipes(doc)
     .map(data => mapSchemaOrgToRecipe(data, sourceUrl))
     .filter(isUsableRecipe)
-    .sort((a, b) => recipeQuality(b) - recipeQuality(a));
+    .sort((a, b) => recipeQuality(b, doc, sourceUrl) - recipeQuality(a, doc, sourceUrl));
   if (ldRecipes.length) return ldRecipes[0];
   const microdata = extractMicrodata(doc, sourceUrl);
   if (microdata && isUsableRecipe(microdata)) return microdata;
@@ -125,8 +125,8 @@ function extractMicrodata(doc, sourceUrl) {
   const getProp = (name) => scope.querySelector(`[itemprop="${name}"]`);
   const getAllProp = (name) => [...scope.querySelectorAll(`[itemprop="${name}"]`)];
 
-  const title = getProp('name')?.textContent.trim()
-    || getProp('name')?.getAttribute('content') || '';
+  const title = getProp('name')?.getAttribute('content')
+    || getProp('name')?.textContent.trim() || '';
   if (!title) return null;
 
   const r = blankRecipe();
@@ -145,6 +145,7 @@ function extractMicrodata(doc, sourceUrl) {
     .map(el => parseIngredientLine(el.textContent.trim()))
     .filter(ingredient => isLikelyIngredient(ingredient.name));
   r.steps = getAllProp('recipeInstructions')
+    .filter(el => !el.querySelector('[itemprop="recipeInstructions"]'))
     .map(el => el.textContent.trim())
     .filter(isLikelyStep);
 
@@ -159,8 +160,7 @@ export function extractFromReaderText(text, sourceUrl) {
   if (lines.length === 0) return null;
 
   const titleLine = lines.find(l => /^title:\s*/i.test(l))
-    || lines.find(l => /^#\s+/.test(l))
-    || lines.find(l => /^[A-ZÄÖÜ][\wÄÖÜäöü\s&()\-/:,.'"]{2,80}$/.test(l));
+    || lines.find(l => /^#\s+/.test(l));
   const r = blankRecipe();
   if (titleLine) {
     r.title = titleLine.replace(/^title:\s*/i, '').replace(/^#+\s*/, '').trim();
@@ -178,10 +178,9 @@ export function extractFromReaderText(text, sourceUrl) {
   for (const line of lines) {
     if (line === titleLine || /^(url source|markdown content|title):/i.test(line)) continue;
     const heading = sectionHeading(line);
-    if (heading) {
-      if (heading === 'ignore') continue;
+    if (heading !== null) {
       section = heading;
-      sawRecipeStructure = true;
+      if (heading === 'ingredients' || heading === 'steps') sawRecipeStructure = true;
       continue;
     }
 
@@ -246,7 +245,7 @@ function mapSchemaOrgToRecipe(data, sourceUrl) {
     .filter(ingredient => isLikelyIngredient(ingredient.name));
 
   const instructions = data.recipeInstructions;
-  r.steps = flattenInstructions(instructions);
+  r.steps = flattenInstructions(instructions).filter(isLikelyStep);
 
   return r;
 }
@@ -303,7 +302,8 @@ function flattenInstructions(instructions) {
   for (const item of instructions) {
     if (typeof item === 'string') { steps.push(item); continue; }
     if (!item || typeof item !== 'object') continue;
-    if (item['@type'] === 'HowToSection' && Array.isArray(item.itemListElement)) {
+    const types = Array.isArray(item['@type']) ? item['@type'] : [item['@type']];
+    if (types.includes('HowToSection') && Array.isArray(item.itemListElement)) {
       steps.push(...flattenInstructions(item.itemListElement));
       continue;
     }
@@ -318,7 +318,7 @@ function sectionHeading(line) {
   if (/^(zubereitung|zubereitungsweise|anleitung|kochschritte|schritte|instructions?|directions?|method|preparation)(\b|:)/.test(heading)) {
     return 'steps';
   }
-  if (/^(nährwerte|naehrwerte|nutrition|notizen|notes|tipps|tips|bewertung|reviews?|comments?|related|ähnliche rezepte|ähnliche artikel|quelle|source|equipment|ausrüstung)(\b|:)/.test(heading)) {
+  if (/^(nährwerte|naehrwerte|nutrition|notizen|notes|tipps|tips|bewertung|reviews?|comments?|related|ähnliche rezepte|ähnliche artikel|quelle|source|equipment|ausrüstung|hinweise|variationen|aufbewahrung|werbung|mehr|produkte|produkte empfehlen)(\b|:)/.test(heading)) {
     return 'ignore';
   }
   if (/^#{1,6}\s/.test(line)) return 'ignore';
@@ -338,7 +338,8 @@ function isUsableRecipe(recipe) {
 function isLikelyIngredient(name) {
   const value = String(name || '').trim();
   return value.length >= 2 && value.length <= 160
-    && !/^(home|startseite|rezepte?|recipes?|search|suche|login|anmelden|über uns|kontakt|impressum|datenschutz|privacy|menu|menü|share|teilen|print|drucken|save recipe|jump to|skip to)$/i.test(value);
+    && !/^(home|startseite|rezepte?|recipes?|search|suche|login|anmelden|über uns|kontakt|impressum|datenschutz|privacy|menu|menü|share|teilen|print|drucken|save recipe|jump to|skip to|werbung|jetzt kaufen|mehr erfahren|zum rezept|rezept drucken|rezept speichern)$/i.test(value)
+    && !/^https?:\/\//i.test(value);
 }
 
 function isLikelyStep(step) {
@@ -347,13 +348,44 @@ function isLikelyStep(step) {
     && !/^(prep time|cook time|total time|servings|nutrition|calories|source|navigation|startseite|über uns|kontakt|impressum|share|print|save recipe)\s*[:.]?$/i.test(value);
 }
 
-function recipeQuality(recipe) {
+function recipeQuality(recipe, doc, sourceUrl) {
   const measuredIngredients = recipe.ingredients.filter(ingredient =>
     ingredient.amount !== null || ingredient.unit
   ).length;
-  return Math.min(recipe.ingredients.length, 30)
+  return titleRelevance(recipe.title, doc, sourceUrl) * 100
+    + Math.min(recipe.ingredients.length, 30)
     + Math.min(recipe.steps.length, 20) * 2
     + measuredIngredients * 2;
+}
+
+function titleRelevance(title, doc, sourceUrl) {
+  let pathTitle = '';
+  if (sourceUrl) {
+    try {
+      pathTitle = new URL(sourceUrl).pathname.split('/').filter(Boolean).pop()?.replace(/[-_]+/g, ' ') || '';
+    } catch {
+      // Pasted fallback text may be parsed before its optional source URL is validated.
+    }
+  }
+  const candidates = [
+    doc.querySelector('meta[property="og:title"]')?.content,
+    doc.querySelector('meta[name="twitter:title"]')?.content,
+    doc.title,
+    pathTitle,
+  ].filter(Boolean);
+  const words = value => String(value).toLocaleLowerCase('de')
+    .replace(/[^a-z0-9äöüß]+/gi, ' ').trim().split(/\s+/)
+    .filter(word => word.length > 2 && !['der', 'die', 'das', 'und', 'mit', 'für', 'the', 'and', 'with', 'recipe', 'rezept'].includes(word));
+  const recipeWords = new Set(words(title));
+  let best = 0;
+  for (const candidate of candidates) {
+    const candidateWords = words(candidate.split(/\s+[|–—-]\s+/)[0]);
+    if (!candidateWords.length || !recipeWords.size) continue;
+    const overlap = candidateWords.filter(word => recipeWords.has(word)).length / Math.max(candidateWords.length, recipeWords.size);
+    if (overlap >= 0.7) best = Math.max(best, 2);
+    else if (overlap >= 0.4) best = Math.max(best, 1);
+  }
+  return best;
 }
 
 // Zerlegt eine freie Zutatenzeile ("200 g Mehl") in { amount, unit, name }.

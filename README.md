@@ -38,7 +38,9 @@ Dann `http://localhost:8000` öffnen. Service Worker funktioniert unter
   meisten Rezeptseiten einbetten und verwirft unvollständige Treffer. Direkter
   `fetch()` scheitert bei vielen Seiten an CORS (browserseitig ohne eigenen
   Server nicht lösbar); der Reader-Fallback übernimmt nur Inhalte aus
-  erkannten Zutaten- und Zubereitungsabschnitten.
+  erkannten Zutaten- und Zubereitungsabschnitten. Andere Abschnitte wie
+  Hinweise, Nährwerte und Werbung werden dabei verworfen; erkannte Rezepte
+  können vor dem Speichern geprüft und angepasst werden.
 - **`js/ocr-import.js`**: Tesseract.js für Texterkennung aus Fotos. Bilder
   werden für bessere Lesbarkeit skaliert und kontrastverstärkt; erkannt wird
   mit dem genaueren deutschen Sprachmodell. Tesseract.js und das Sprachmodell
