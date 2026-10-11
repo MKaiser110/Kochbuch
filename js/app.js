@@ -42,14 +42,24 @@ function openDataMenu() {
       status.textContent = 'Erzeuge Backup-Link …';
       try {
         const recipes = await getAllRecipes();
-        const payload = { type: 'kochbuch-backup', version: 2, exportedAt: new Date().toISOString(), recipes };
-        const url = `${location.origin}${location.pathname}#backup=${encodePayload(payload)}`;
+        const omittedImages = recipes.filter(recipe => typeof recipe.image === 'string' && recipe.image.startsWith('data:')).length;
+        const linkRecipes = recipes.map(recipe => ({
+          ...recipe,
+          image: typeof recipe.image === 'string' && recipe.image.startsWith('data:') ? null : recipe.image,
+        }));
+        const payload = { type: 'kochbuch-backup', version: 3, exportedAt: new Date().toISOString(), recipes: linkRecipes };
+        const encoded = await encodeBackupPayload(payload);
+        const url = `${location.origin}${location.pathname}#backup=${encoded}`;
         if (navigator.clipboard) {
           await navigator.clipboard.writeText(url);
-          status.textContent = 'Backup-Link in die Zwischenablage kopiert.';
+          status.textContent = omittedImages
+            ? `Kompakter Backup-Link kopiert. ${omittedImages} eingebettete(s) Bild(er) sind nur im Datei-Export enthalten.`
+            : 'Kompakter Backup-Link in die Zwischenablage kopiert.';
         } else {
           prompt('Backup-Link:', url);
-          status.textContent = 'Backup-Link bereit – bitte kopieren.';
+          status.textContent = omittedImages
+            ? `Backup-Link bereit. ${omittedImages} eingebettete(s) Bild(er) sind nur im Datei-Export enthalten.`
+            : 'Backup-Link bereit – bitte kopieren.';
         }
       } catch {
         status.textContent = 'Backup-Link konnte nicht erstellt werden.';
@@ -122,6 +132,43 @@ function decodePayload(value) {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 
+function bytesToBase64Url(bytes) {
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64UrlToBytes(value) {
+  const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(base64 + '='.repeat((4 - base64.length % 4) % 4));
+  return Uint8Array.from(binary, char => char.charCodeAt(0));
+}
+
+async function encodeBackupPayload(payload) {
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  if (typeof CompressionStream === 'function' && typeof DecompressionStream === 'function') {
+    const compressed = await new Response(
+      new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'))
+    ).arrayBuffer();
+    return `gzip.${bytesToBase64Url(new Uint8Array(compressed))}`;
+  }
+  return `plain.${bytesToBase64Url(bytes)}`;
+}
+
+async function decodeBackupPayload(value) {
+  if (value.startsWith('gzip.')) {
+    const bytes = base64UrlToBytes(value.slice('gzip.'.length));
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return JSON.parse(await new Response(stream).text());
+  }
+  if (value.startsWith('plain.')) {
+    return JSON.parse(new TextDecoder().decode(base64UrlToBytes(value.slice('plain.'.length))));
+  }
+  return decodePayload(value);
+}
+
 function createRecipeShareLink(recipe) {
   const payload = { type: 'kochbuch-recipe', recipe };
   return `${location.origin}${location.pathname}#share=${encodePayload(payload)}`;
@@ -155,7 +202,7 @@ async function importBackupFromHash(hash) {
   const match = /^backup=(.+)$/.exec(hash);
   if (!match) return false;
   try {
-    const payload = decodePayload(match[1]);
+    const payload = await decodeBackupPayload(match[1]);
     if (!payload || payload.type !== 'kochbuch-backup' || !Array.isArray(payload.recipes)) return false;
     let imported = 0;
     for (const recipe of payload.recipes) {

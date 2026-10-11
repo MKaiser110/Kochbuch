@@ -48,6 +48,10 @@ Dann `http://localhost:8000` öffnen. Service Worker funktioniert unter
   Entwurf und sollte vor dem Speichern im Formular geprüft werden.
 - **`js/scaling.js`**: skaliert Mengen linear zur Portionenzahl, rundet auf
   küchentaugliche Werte.
+- **Backup-Link**: Der teilbare Link wird, wenn vom Browser unterstützt,
+  komprimiert und lässt eingebettete Bilddaten aus, damit er kürzer bleibt.
+  Für eine vollständige Sicherung inklusive Bildern den Datei-Export nutzen.
+  Ältere, unkomprimierte Backup-Links bleiben importierbar.
 
 ## Getroffene Annahmen
 - Einheitensystem: metrisch.
