@@ -452,7 +452,7 @@ body {
   outline: none;
   background-color: var(--surface-soft);
   color: var(--ink);
-  font-size: .93rem;
+  font-size: 16px;
   font-weight: 400;
 }
 .form input:focus, .form textarea:focus { border-color: var(--line-strong); background-color: var(--surface); }
