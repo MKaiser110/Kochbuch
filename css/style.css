@@ -30,6 +30,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 button, input, select, textarea { color: inherit; font: inherit; }
+body input, body textarea, body select { font-size: 16px; }
 button { -webkit-tap-highlight-color: transparent; }
 
 body {
