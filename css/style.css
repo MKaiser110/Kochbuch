@@ -421,7 +421,7 @@ body {
   background: var(--surface);
   box-shadow: 0 18px 60px rgb(0 0 0 / 12%);
 }
-.form {
+#recipe-form {
   overflow-x: hidden;
   overscroll-behavior-x: none;
   touch-action: pan-y;
@@ -558,7 +558,7 @@ body {
 .cook-ingredients { position: absolute; z-index: 3; inset: 0; overflow-y: auto; background: var(--surface); }
 .cook-ingredients-title { margin: 4px 0 14px; color: var(--ink); font-size: 1.2rem; letter-spacing: 0; text-transform: none; }
 .cook-ingredients-inner { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
-.cook-ingredients .ingredient-list li { padding: 13px 0; font-size: 1rem; }
+.cook-ingredients .ingredient-list li { padding: 13px 14px 13px 0; font-size: 1rem; }
 .cook-ingredients .btn-primary { margin-top: 20px; }
 body.cook-mode .topbar-actions { visibility: hidden; }
 
