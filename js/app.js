@@ -1,4 +1,4 @@
-import { getAllRecipes, getRecipe, saveRecipe, deleteRecipe, getAllTags, getAllIngredientNames, blankRecipe, parseTagInput, findDuplicate } from './db.js';
+import { getAllRecipes, getRecipe, saveRecipe, deleteRecipe, getAllTags, getAllIngredientNames, blankRecipe, parseTagInput, findDuplicate, getAllShoppingLists, saveShoppingList, deleteShoppingList, blankShoppingList } from './db.js';
 import { scaleIngredients, formatAmount } from './scaling.js';
 import { importFromUrl, extractFromHtml, extractFromReaderText, parseIngredientLine } from './recipe-import.js';
 import { recognizeImage, draftRecipeFromOcrText } from './ocr-import.js';
@@ -251,10 +251,23 @@ async function route() {
   } else if (hash === 'new') {
     btnBack.hidden = false;
     renderEditForm(null);
+  } else if (hash === 'shopping') {
+    btnBack.hidden = true;
+    renderShopping();
   } else {
     btnBack.hidden = true;
     renderOverview();
   }
+  const shoppingActive = hash === 'shopping';
+  document.body.classList.toggle('shopping-mode', shoppingActive);
+  document.getElementById('btn-add').hidden = shoppingActive;
+  document.getElementById('btn-data-menu').hidden = shoppingActive;
+  document.querySelectorAll('.tab-link').forEach(tab => {
+    const active = tab.dataset.tab === (shoppingActive ? 'shopping' : 'cookbook');
+    tab.classList.toggle('active', active);
+    if (active) tab.setAttribute('aria-current', 'page');
+    else tab.removeAttribute('aria-current');
+  });
 }
 
 // ---------- Übersicht ----------
@@ -439,6 +452,311 @@ function normalizeIngredientName(name) {
   return String(name || '').normalize('NFKC').replace(/\s+/g, ' ').trim().toLocaleLowerCase('de');
 }
 
+const shoppingCatalog = [
+  ['Apfel', '🍎', 'Obst & Gemüse'], ['Banane', '🍌', 'Obst & Gemüse'], ['Zitrone', '🍋', 'Obst & Gemüse'],
+  ['Tomate', '🍅', 'Obst & Gemüse'], ['Kartoffel', '🥔', 'Obst & Gemüse'], ['Zwiebel', '🧅', 'Obst & Gemüse'],
+  ['Knoblauch', '🧄', 'Obst & Gemüse'], ['Karotte', '🥕', 'Obst & Gemüse'], ['Paprika', '🫑', 'Obst & Gemüse'],
+  ['Salat', '🥬', 'Obst & Gemüse'], ['Gurke', '🥒', 'Obst & Gemüse'], ['Brokkoli', '🥦', 'Obst & Gemüse'],
+  ['Pilze', '🍄', 'Obst & Gemüse'], ['Avocado', '🥑', 'Obst & Gemüse'], ['Erdbeeren', '🍓', 'Obst & Gemüse'],
+  ['Brot', '🍞', 'Backwaren'], ['Brötchen', '🥖', 'Backwaren'], ['Mehl', '🌾', 'Backwaren'],
+  ['Milch', '🥛', 'Milchprodukte'], ['Butter', '🧈', 'Milchprodukte'], ['Käse', '🧀', 'Milchprodukte'],
+  ['Joghurt', '🥣', 'Milchprodukte'], ['Sahne', '🥛', 'Milchprodukte'], ['Eier', '🥚', 'Milchprodukte'],
+  ['Hähnchen', '🍗', 'Fleisch & Fisch'], ['Hackfleisch', '🥩', 'Fleisch & Fisch'], ['Lachs', '🐟', 'Fleisch & Fisch'],
+  ['Tofu', '', 'Fleisch & Fisch'], ['Reis', '🍚', 'Vorrat'], ['Nudeln', '🍝', 'Vorrat'],
+  ['Haferflocken', '🌾', 'Vorrat'], ['Linsen', '🫘', 'Vorrat'], ['Bohnen', '🫘', 'Vorrat'],
+  ['Tomaten (Dose)', '🥫', 'Vorrat'], ['Olivenöl', '🫒', 'Vorrat'], ['Essig', '🍶', 'Vorrat'],
+  ['Salz', '🧂', 'Gewürze'], ['Pfeffer', '🫙', 'Gewürze'], ['Paprikapulver', '🌶️', 'Gewürze'],
+  ['Basilikum', '🌿', 'Gewürze'], ['Petersilie', '🌿', 'Gewürze'], ['Zucker', '🍬', 'Backwaren'],
+];
+
+let selectedShoppingListId = null;
+
+function catalogEntry(name) {
+  const normalized = normalizeIngredientName(name);
+  return shoppingCatalog.find(([item]) => normalizeIngredientName(item) === normalized) || null;
+}
+
+function renderShoppingIcon(name, emoji) {
+  const span = document.createElement('span');
+  span.setAttribute('aria-hidden', 'true');
+  if (emoji) {
+    span.className = 'shopping-emoji';
+    span.textContent = emoji;
+  } else {
+    span.className = 'shopping-letter';
+    span.textContent = String(name || '?').trim().charAt(0).toLocaleUpperCase('de') || '?';
+  }
+  return span;
+}
+
+function mergeShoppingQuantities(existing, incoming) {
+  const merged = [...(existing || [])].map(quantity => ({ ...quantity }));
+  (incoming || []).forEach(quantity => {
+    const unit = String(quantity.unit || '').trim();
+    const match = merged.find(entry =>
+      String(entry.unit || '').trim().toLocaleLowerCase('de') === unit.toLocaleLowerCase('de')
+      && entry.amount != null && quantity.amount != null
+    );
+    if (match) match.amount = Math.round((Number(match.amount) + Number(quantity.amount)) * 100) / 100;
+    else if (quantity.amount != null || unit) merged.push({ amount: quantity.amount, unit });
+  });
+  return merged;
+}
+
+async function addShoppingItem(list, name, quantities = []) {
+  const cleanName = String(name || '').replace(/\s+/g, ' ').trim();
+  if (!cleanName) return list;
+  const items = [...list.items];
+  const existing = items.find(item => normalizeIngredientName(item.name) === normalizeIngredientName(cleanName));
+  if (existing) {
+    existing.quantities = mergeShoppingQuantities(existing.quantities, quantities);
+  } else {
+    const catalog = catalogEntry(cleanName);
+    items.push({
+      id: crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
+      name: cleanName,
+      category: catalog?.[2] || 'Weitere Artikel',
+      emoji: catalog?.[1] || '',
+      quantities: mergeShoppingQuantities([], quantities),
+      createdAt: Date.now(),
+    });
+  }
+  return saveShoppingList({ ...list, items });
+}
+
+async function ensureShoppingList() {
+  const lists = await getAllShoppingLists();
+  if (lists.length) return lists;
+  const created = await saveShoppingList(blankShoppingList());
+  selectedShoppingListId = created.id;
+  return [created];
+}
+
+async function renderShopping() {
+  const seq = routeSeq;
+  if (cleanupView) { cleanupView(); cleanupView = null; }
+  pageTitle.textContent = 'Einkaufslisten';
+  const tpl = document.getElementById('tpl-shopping').content.cloneNode(true);
+  app.innerHTML = '';
+  app.appendChild(tpl);
+  const root = app.querySelector('.shopping-view');
+  const listPicker = root.querySelector('.shopping-list-picker');
+  const createBtn = root.querySelector('.shopping-list-create');
+  const renameBtn = root.querySelector('.shopping-list-rename');
+  const deleteBtn = root.querySelector('.shopping-list-delete');
+  const searchInput = root.querySelector('.shopping-search');
+  const suggestions = root.querySelector('.shopping-suggestions');
+  const itemsGrid = root.querySelector('.shopping-items-grid');
+  const emptyMessage = root.querySelector('.shopping-empty');
+  let lists = await ensureShoppingList();
+  if (seq !== routeSeq) return;
+
+  function currentList() {
+    return lists.find(list => list.id === selectedShoppingListId) || lists[0];
+  }
+
+  function renderListPicker() {
+    listPicker.innerHTML = '';
+    lists.forEach(list => {
+      const option = document.createElement('option');
+      option.value = list.id;
+      option.textContent = list.name;
+      option.selected = list.id === currentList().id;
+      listPicker.appendChild(option);
+    });
+    selectedShoppingListId = currentList().id;
+    listPicker.disabled = lists.length < 2;
+  }
+
+  function drawItems() {
+    itemsGrid.innerHTML = '';
+    const list = currentList();
+    list.items.forEach(item => {
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'shopping-item';
+      tile.setAttribute('aria-label', `${item.name}${item.quantities?.length ? `, ${item.quantities.map(q => formatAmount(q.amount, q.unit)).filter(Boolean).join(', ')}` : ''} entfernen`);
+      const catalog = catalogEntry(item.name);
+      tile.appendChild(renderShoppingIcon(item.name, item.emoji || catalog?.[1]));
+      const name = document.createElement('span');
+      name.className = 'shopping-item-name';
+      name.textContent = item.name;
+      tile.appendChild(name);
+      const quantities = (item.quantities || []).map(q => formatAmount(q.amount, q.unit)).filter(Boolean);
+      if (quantities.length) {
+        const amount = document.createElement('span');
+        amount.className = 'shopping-item-quantity';
+        amount.textContent = quantities.join(' · ');
+        tile.appendChild(amount);
+      }
+      const remove = document.createElement('span');
+      remove.className = 'shopping-item-remove';
+      remove.textContent = '×';
+      tile.appendChild(remove);
+      tile.addEventListener('click', async () => {
+        try {
+          const updated = await saveShoppingList({
+            ...currentList(),
+            items: currentList().items.filter(entry => entry.id !== item.id),
+          });
+          lists = lists.map(entry => entry.id === updated.id ? updated : entry);
+          drawItems();
+        } catch (error) {
+          reportShoppingError(error, 'Der Artikel konnte nicht entfernt werden.');
+        }
+      });
+      itemsGrid.appendChild(tile);
+    });
+    emptyMessage.hidden = list.items.length > 0;
+  }
+
+  function drawSuggestions(query) {
+    suggestions.innerHTML = '';
+    const normalizedQuery = normalizeIngredientName(query);
+    const matches = normalizedQuery
+      ? shoppingCatalog.filter(([name]) => normalizeIngredientName(name).includes(normalizedQuery))
+      : shoppingCatalog.slice(0, 12);
+    const groups = new Map();
+    matches.forEach(entry => {
+      if (!groups.has(entry[2])) groups.set(entry[2], []);
+      groups.get(entry[2]).push(entry);
+    });
+    groups.forEach((entries, category) => {
+      const heading = document.createElement('h3');
+      heading.className = 'shopping-suggestion-category';
+      heading.textContent = category;
+      suggestions.appendChild(heading);
+      const grid = document.createElement('div');
+      grid.className = 'shopping-suggestion-grid';
+      entries.forEach(([name, emoji]) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'shopping-suggestion';
+        button.appendChild(renderShoppingIcon(name, emoji));
+        const label = document.createElement('span');
+        label.className = 'shopping-suggestion-name';
+        label.textContent = name;
+        button.appendChild(label);
+        button.addEventListener('click', async () => {
+          try {
+            const updated = await addShoppingItem(currentList(), name);
+            lists = lists.map(list => list.id === updated.id ? updated : list);
+            drawItems();
+            searchInput.value = '';
+            drawSuggestions('');
+          } catch (error) {
+            reportShoppingError(error, 'Der Artikel konnte nicht hinzugefügt werden.');
+          }
+        });
+        grid.appendChild(button);
+      });
+      suggestions.appendChild(grid);
+    });
+    if (normalizedQuery && !shoppingCatalog.some(([name]) => normalizeIngredientName(name) === normalizedQuery)) {
+      const addCustom = document.createElement('button');
+      addCustom.type = 'button';
+      addCustom.className = 'shopping-suggestion shopping-custom-suggestion';
+      addCustom.appendChild(renderShoppingIcon(query.trim()));
+      const label = document.createElement('span');
+      label.className = 'shopping-suggestion-name';
+      label.textContent = `„${query.trim()}“ hinzufügen`;
+      addCustom.appendChild(label);
+      addCustom.addEventListener('click', async () => {
+        try {
+          const updated = await addShoppingItem(currentList(), query.trim());
+          lists = lists.map(list => list.id === updated.id ? updated : list);
+          drawItems();
+          searchInput.value = '';
+          drawSuggestions('');
+        } catch (error) {
+          reportShoppingError(error, 'Der Artikel konnte nicht hinzugefügt werden.');
+        }
+      });
+      suggestions.appendChild(addCustom);
+    }
+  }
+
+  listPicker.value = currentList().id;
+  listPicker.addEventListener('change', () => {
+    selectedShoppingListId = listPicker.value;
+    drawItems();
+  });
+  searchInput.addEventListener('input', () => drawSuggestions(searchInput.value));
+  createBtn.addEventListener('click', () => {
+    openShoppingListNameSheet('Neue Einkaufsliste', '', 'Erstellen', async name => {
+      const created = await saveShoppingList(blankShoppingList(name));
+      lists = [created, ...lists];
+      selectedShoppingListId = created.id;
+      renderListPicker();
+      drawItems();
+    });
+  });
+  renameBtn.addEventListener('click', () => {
+    const list = currentList();
+    openShoppingListNameSheet('Einkaufsliste umbenennen', list.name, 'Speichern', async name => {
+      if (name === list.name) return;
+      const updated = await saveShoppingList({ ...list, name });
+      lists = lists.map(entry => entry.id === updated.id ? updated : entry);
+      renderListPicker();
+    });
+  });
+  deleteBtn.addEventListener('click', async () => {
+    const list = currentList();
+    if (!confirm(`„${list.name}“ und alle Artikel wirklich löschen?`)) return;
+    try {
+      await deleteShoppingList(list.id);
+      lists = lists.filter(entry => entry.id !== list.id);
+      if (!lists.length) {
+        const replacement = await saveShoppingList(blankShoppingList());
+        lists = [replacement];
+      }
+      selectedShoppingListId = lists[0].id;
+      renderListPicker();
+      drawItems();
+    } catch (error) {
+      reportShoppingError(error, 'Die Einkaufsliste konnte nicht gelöscht werden.');
+    }
+  });
+
+  renderListPicker();
+  drawSuggestions('');
+  drawItems();
+}
+
+function reportShoppingError(error, message) {
+  console.error(message, error);
+  alert(message);
+}
+
+function openShoppingListNameSheet(title, initialName, submitText, saveName) {
+  openSheet('tpl-shopping-list-name', node => {
+    const form = node.querySelector('.shopping-list-name-form');
+    const input = node.querySelector('.shopping-list-name-input');
+    const submit = node.querySelector('.shopping-list-name-submit');
+    node.querySelector('.shopping-list-name-title').textContent = title;
+    node.querySelector('.shopping-list-name-cancel').addEventListener('click', closeSheet);
+    input.value = initialName;
+    submit.textContent = submitText;
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const name = input.value.replace(/\s+/g, ' ').trim();
+      if (!name) {
+        input.focus();
+        return;
+      }
+      submit.disabled = true;
+      try {
+        await saveName(name);
+        closeSheet();
+      } catch (error) {
+        submit.disabled = false;
+        reportShoppingError(error, 'Die Einkaufsliste konnte nicht gespeichert werden.');
+      }
+    });
+    input.focus();
+  });
+}
+
 async function renderGrid() {
   const all = await getAllRecipes();
   const selectedIngredientNames = new Set([...selectedIngredients].map(normalizeIngredientName));
@@ -483,6 +801,96 @@ async function renderGrid() {
     tile.addEventListener('click', () => { location.hash = `recipe/${r.id}`; });
     grid.appendChild(node);
   });
+}
+
+async function openRecipeShopping(recipe, servings) {
+  const seq = routeSeq;
+  try {
+    const lists = await ensureShoppingList();
+    if (seq !== routeSeq) return;
+    const targetId = lists.some(list => list.id === selectedShoppingListId)
+      ? selectedShoppingListId
+      : lists[0].id;
+    selectedShoppingListId = targetId;
+    openSheet('tpl-shopping-recipe', node => {
+      const picker = node.querySelector('.shopping-target-list');
+      const ingredientContainer = node.querySelector('.shopping-recipe-ingredients');
+      const scaledIngredients = scaleIngredients(recipe.ingredients, recipe.servingsBase, servings);
+      lists.forEach(list => {
+        const option = document.createElement('option');
+        option.value = list.id;
+        option.textContent = list.name;
+        option.selected = list.id === targetId;
+        picker.appendChild(option);
+      });
+      scaledIngredients.forEach((ingredient, index) => {
+        const label = document.createElement('label');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = true;
+        checkbox.value = String(index);
+        const text = document.createElement('span');
+        text.textContent = [formatAmount(ingredient.amount, ingredient.unit), ingredient.name]
+          .filter(Boolean).join(' ');
+        label.append(checkbox, text);
+        ingredientContainer.appendChild(label);
+      });
+      node.querySelector('.shopping-recipe-cancel').addEventListener('click', closeSheet);
+      node.querySelector('.shopping-recipe-confirm').addEventListener('click', async event => {
+        const selected = [...ingredientContainer.querySelectorAll('input:checked')]
+          .map(input => scaledIngredients[Number(input.value)])
+          .filter(ingredient => ingredient?.name?.trim());
+        if (!selected.length) {
+          alert('Wähle mindestens eine Zutat aus.');
+          return;
+        }
+        const destination = lists.find(list => list.id === picker.value);
+        if (!destination) {
+          alert('Die ausgewählte Einkaufsliste ist nicht verfügbar.');
+          return;
+        }
+        const grouped = new Map();
+        selected.forEach(ingredient => {
+          const key = normalizeIngredientName(ingredient.name);
+          const current = grouped.get(key) || { name: ingredient.name.trim(), quantities: [] };
+          current.quantities = mergeShoppingQuantities(current.quantities, [{
+            amount: ingredient.amount,
+            unit: ingredient.unit || '',
+          }]);
+          grouped.set(key, current);
+        });
+        let items = [...destination.items];
+        grouped.forEach(ingredient => {
+          const existing = items.find(item => normalizeIngredientName(item.name) === normalizeIngredientName(ingredient.name));
+          if (existing) existing.quantities = mergeShoppingQuantities(existing.quantities, ingredient.quantities);
+          else {
+            const catalog = catalogEntry(ingredient.name);
+            items.push({
+              id: crypto.randomUUID?.() || `${Date.now()}-${Math.random()}`,
+              name: ingredient.name,
+              category: catalog?.[2] || 'Weitere Artikel',
+              emoji: catalog?.[1] || '',
+              quantities: ingredient.quantities,
+              createdAt: Date.now(),
+            });
+          }
+        });
+        const confirmButton = event.currentTarget;
+        confirmButton.disabled = true;
+        try {
+          await saveShoppingList({ ...destination, items });
+          selectedShoppingListId = destination.id;
+          closeSheet();
+          alert(`${selected.length} Zutat(en) zur Liste „${destination.name}“ hinzugefügt.`);
+        } catch (error) {
+          confirmButton.disabled = false;
+          reportShoppingError(error, 'Die Zutaten konnten nicht hinzugefügt werden.');
+        }
+      });
+    });
+  } catch (error) {
+    reportShoppingError(error, 'Die Einkaufsliste konnte nicht geladen werden.');
+  }
 }
 
 // ---------- Detailseite ----------
@@ -581,6 +989,7 @@ async function renderDetail(id) {
   });
 
   root.querySelector('.btn-share').addEventListener('click', () => shareRecipe(recipe));
+  root.querySelector('.btn-shopping-add').addEventListener('click', () => openRecipeShopping(recipe, servings));
 
   // Kochmodus: gewählte Portionenzahl wird per Hash-Parameter mitgegeben.
   root.querySelector('.btn-cook-mode').addEventListener('click', () => {

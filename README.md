@@ -28,7 +28,8 @@ Dann `http://localhost:8000` öffnen. Service Worker funktioniert unter
 ## Architektur
 - **Kein Build-Schritt**: reines HTML/CSS/JS mit ES-Modulen, direkt statisch
   hostbar.
-- **`js/db.js`**: einziger Zugriffspunkt auf IndexedDB. Jeder Schreibzugriff
+- **`js/db.js`**: einziger Zugriffspunkt auf IndexedDB. Rezepte und
+  Einkaufslisten liegen in getrennten Object Stores. Jeder Rezept-Schreibzugriff
   läuft zusätzlich durch `js/sync-adapter.js`.
 - **`js/sync-adapter.js`**: aktuell ein No-Op („local-only“). Für iCloud-Sync
   später eine Klasse mit derselben Schnittstelle (`push`, `delete`, `pull`,
@@ -73,3 +74,7 @@ Dann `http://localhost:8000` öffnen. Service Worker funktioniert unter
   Exportiert wird mit der auf der Detailseite gewählten Portionenzahl.
 - **Kochmodus** (Route `#cook/<id>?s=<portionen>`): ein Schritt pro Seite,
   Wischen/Pfeiltasten, Bildschirm bleibt wach, Zutatenliste jederzeit abrufbar.
+- **Einkaufslisten** (`#shopping`): beliebig viele lokal gespeicherte Listen,
+  Lebensmittelkatalog mit schneller Suche und eigenen Artikeln. Im Rezept lassen
+  sich ausgewählte, auf die aktuelle Portionszahl skalierte Zutaten einer Liste
+  hinzufügen; gleiche Zutaten werden zusammengeführt.
