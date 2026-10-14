@@ -343,6 +343,7 @@ body {
 .detail-actions { display: flex; gap: 10px; margin-top: 12px; }
 .detail-actions.compact { margin-top: 18px; }
 .detail-actions:first-of-type { margin-top: 24px; }
+.cooked-actions { align-items: center; }
 .btn-edit, .btn-delete, .btn-share, .btn-pdf, .btn-cooked, .btn-favorite {
   min-height: 44px;
   flex: 1;
@@ -356,6 +357,22 @@ body {
 }
 .btn-delete { color: var(--danger); }
 .btn-cooked.done { border-color: var(--line-strong); color: var(--ink-soft); }
+.btn-bring {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+}
+.btn-bring:hover { background: var(--surface-soft); }
+.btn-bring:active { transform: scale(.97); }
+.btn-bring svg { width: 21px; height: 21px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 .btn-favorite { flex: 0 0 auto; min-width: 118px; }
 .btn-favorite.active { border-color: #f0c24a; background: #fff3c9; color: #7c5d00; }
 .rating-panel {

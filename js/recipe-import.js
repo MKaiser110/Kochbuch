@@ -18,6 +18,7 @@
 // nötig" aus den Vorgaben nicht mehr erfüllt — daher hier bewusst so gelöst.
 
 import { blankRecipe, normalizeTags } from './db.js';
+import { decodeSharedRecipe } from './recipe-share.js';
 
 const CORS_PROXIES = [
   url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
@@ -30,21 +31,12 @@ const CORS_PROXIES = [
 // der Praxis deutlich zuverlässiger erreichbar als die generischen Proxies).
 const READER_PREFIX = 'https://r.jina.ai/';
 
-function tryDecodeSharedRecipeUrl(parsedUrl) {
+async function tryDecodeSharedRecipeUrl(parsedUrl) {
   const hash = parsedUrl.hash.slice(1);
   if (!hash.startsWith('share=')) return null;
-  try {
-    const value = hash.slice('share='.length);
-    const binary = atob(value);
-    const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
-    const payload = JSON.parse(new TextDecoder().decode(bytes));
-    if (!payload || payload.type !== 'kochbuch-recipe' || !payload.recipe) return null;
-    const recipe = { ...payload.recipe };
-    if (!recipe.title || !Array.isArray(recipe.ingredients) || !Array.isArray(recipe.steps)) return null;
-    return recipe;
-  } catch {
-    return null;
-  }
+  const recipe = await decodeSharedRecipe(hash.slice('share='.length));
+  if (!recipe) throw new Error('INVALID_SHARED_RECIPE');
+  return recipe;
 }
 
 export async function importFromUrl(url) {
@@ -53,7 +45,7 @@ export async function importFromUrl(url) {
     throw new Error('INVALID_URL');
   }
 
-  const sharedRecipe = tryDecodeSharedRecipeUrl(parsedUrl);
+  const sharedRecipe = await tryDecodeSharedRecipeUrl(parsedUrl);
   if (sharedRecipe) return sharedRecipe;
 
   // 1) direkter Fetch — funktioniert nur, wenn die Zielseite CORS erlaubt

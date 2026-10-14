@@ -6,6 +6,7 @@ import { exportRecipesToFile, importRecipesFromFile } from './export-import.js';
 import { compressImageToDataUrl } from './image-utils.js';
 import { enableWakeLock, disableWakeLock, isSupported as wakeLockSupported } from './wake-lock.js';
 import { preparePdfAssets, exportRecipePdf } from './pdf-export.js';
+import { encodeSharedRecipe, decodeSharedRecipe } from './recipe-share.js';
 
 const app = document.getElementById('app');
 const pageTitle = document.getElementById('page-title');
@@ -121,11 +122,6 @@ let cleanupView = null;
 let routeSeq = 0;
 let visualViewportCleanup = null;
 
-function encodePayload(value) {
-  const json = JSON.stringify(value);
-  return btoa(unescape(encodeURIComponent(json)));
-}
-
 function decodePayload(value) {
   const binary = atob(value);
   const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
@@ -169,9 +165,9 @@ async function decodeBackupPayload(value) {
   return decodePayload(value);
 }
 
-function createRecipeShareLink(recipe) {
-  const payload = { type: 'kochbuch-recipe', recipe };
-  return `${location.origin}${location.pathname}#share=${encodePayload(payload)}`;
+async function createRecipeShareLink(recipe) {
+  const payload = await encodeSharedRecipe(recipe);
+  return `${location.origin}${location.pathname}#share=${payload}`;
 }
 
 async function importSharedRecipeFromHash(hash) {
@@ -179,11 +175,9 @@ async function importSharedRecipeFromHash(hash) {
   const match = /^share=(.+)$/.exec(hash);
   if (!match) { return false; }
   try {
-    const payload = decodePayload(match[1]);
-    if (!payload || payload.type !== 'kochbuch-recipe' || !payload.recipe || !payload.recipe.title) {
-      return false;
-    }
-    const recipe = { ...payload.recipe, id: payload.recipe.id || crypto.randomUUID?.() || `${Date.now()}` };
+    const sharedRecipe = await decodeSharedRecipe(match[1]);
+    if (!sharedRecipe) return false;
+    const recipe = { ...sharedRecipe, id: sharedRecipe.id || crypto.randomUUID?.() || `${Date.now()}` };
     const existing = await getAllRecipes();
     const duplicate = findDuplicate(recipe, existing);
     if (duplicate && !confirm(`Dieses geteilte Rezept ist schon ähnlich zu „${duplicate.recipe.title}“ vorhanden. Trotzdem importieren?`)) {
@@ -571,6 +565,34 @@ async function renderDetail(id) {
   }
   renderIngredients();
 
+  root.querySelector('.btn-bring').addEventListener('click', async () => {
+    const items = scaleIngredients(recipe.ingredients, recipe.servingsBase, servings)
+      .filter(ing => typeof ing.name === 'string' && ing.name.trim())
+      .map(ing => [formatAmount(ing.amount, ing.unit), ing.name.trim()].filter(Boolean).join(' '));
+    if (!items.length) {
+      alert('Dieses Rezept enthält keine Zutaten zum Übergeben.');
+      return;
+    }
+
+    const text = items.join('\n');
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: recipe.title, text });
+        return;
+      } catch (error) {
+        if (error && error.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      if (!navigator.clipboard) throw new Error('Clipboard API nicht verfügbar');
+      await navigator.clipboard.writeText(text);
+      alert('Zutaten kopiert. Öffne Bring! und füge sie dort ein.');
+    } catch {
+      alert('Zutaten konnten nicht an Bring! übergeben oder kopiert werden.');
+    }
+  });
+
   root.querySelectorAll('.serv-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const delta = parseInt(btn.dataset.delta, 10);
@@ -827,7 +849,7 @@ function buildShareText(recipe) {
 }
 
 async function shareRecipe(recipe) {
-  const shareUrl = createRecipeShareLink(recipe);
+  const shareUrl = await createRecipeShareLink(recipe);
   const shareText = buildShareText(recipe);
 
   openSheet('tpl-share-choice', node => {
@@ -963,6 +985,10 @@ function openUrlImport() {
       } catch (err) {
         if (err && err.message === 'INVALID_URL') {
           status.textContent = 'Bitte eine gültige Rezeptadresse mit http oder https eingeben.';
+          return;
+        }
+        if (err && err.message === 'INVALID_SHARED_RECIPE') {
+          status.textContent = 'Der Rezept-Link ist unvollständig oder beschädigt. Bitte kopiere ihn erneut.';
           return;
         }
         status.textContent = 'Kein vollständiges Rezept erkannt — bitte Seiteninhalt einfügen und prüfen.';

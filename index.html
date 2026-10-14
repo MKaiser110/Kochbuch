@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kochbuch</title>
 <meta name="theme-color" content="#ffffff">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -137,8 +138,14 @@
       <span>Notiz / Kommentar</span>
       <textarea class="recipe-notes" rows="3" placeholder="Notiz für dieses Rezept…"></textarea>
     </label>
-    <div class="detail-actions">
+    <div class="detail-actions cooked-actions">
       <button class="btn-cooked">Heute gekocht</button>
+      <button class="btn-bring" type="button" aria-label="Zutaten an Bring! übergeben" title="Zutaten an Bring! übergeben">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 10h16l-1.5 10h-13L4 10Z"></path>
+          <path d="M8 10a4 4 0 0 1 8 0M8 14v3m4-3v3m4-3v3"></path>
+        </svg>
+      </button>
     </div>
     <div class="detail-actions">
       <button class="btn-edit">Bearbeiten</button>

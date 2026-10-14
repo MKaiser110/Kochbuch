@@ -71,5 +71,10 @@ Dann `http://localhost:8000` öffnen. Service Worker funktioniert unter
 - **PDF-Export** (`js/pdf-export.js`): jsPDF liegt lokal in `js/vendor/`
   (offline nutzbar). Mobil über das Share-Sheet, am Desktop als Download.
   Exportiert wird mit der auf der Detailseite gewählten Portionenzahl.
+- **Bring!-Übergabe**: Der Button auf der Rezeptdetailseite teilt die Zutaten
+  für die ausgewählte Portionszahl über das Teilen-Menü des Geräts. Falls
+  dieses nicht verfügbar ist, werden die Zutaten kopiert. Eine direkte,
+  automatische Ergänzung in einer Bring!-Liste erfordert eine separate
+  Anmeldung/Integration und wird von der rein lokalen App nicht vorgenommen.
 - **Kochmodus** (Route `#cook/<id>?s=<portionen>`): ein Schritt pro Seite,
   Wischen/Pfeiltasten, Bildschirm bleibt wach, Zutatenliste jederzeit abrufbar.
