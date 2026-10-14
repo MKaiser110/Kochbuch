@@ -565,34 +565,6 @@ async function renderDetail(id) {
   }
   renderIngredients();
 
-  root.querySelector('.btn-bring').addEventListener('click', async () => {
-    const items = scaleIngredients(recipe.ingredients, recipe.servingsBase, servings)
-      .filter(ing => typeof ing.name === 'string' && ing.name.trim())
-      .map(ing => [formatAmount(ing.amount, ing.unit), ing.name.trim()].filter(Boolean).join(' '));
-    if (!items.length) {
-      alert('Dieses Rezept enthält keine Zutaten zum Übergeben.');
-      return;
-    }
-
-    const text = items.join('\n');
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: recipe.title, text });
-        return;
-      } catch (error) {
-        if (error && error.name === 'AbortError') return;
-      }
-    }
-
-    try {
-      if (!navigator.clipboard) throw new Error('Clipboard API nicht verfügbar');
-      await navigator.clipboard.writeText(text);
-      alert('Zutaten kopiert. Öffne Bring! und füge sie dort ein.');
-    } catch {
-      alert('Zutaten konnten nicht an Bring! übergeben oder kopiert werden.');
-    }
-  });
-
   root.querySelectorAll('.serv-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const delta = parseInt(btn.dataset.delta, 10);
