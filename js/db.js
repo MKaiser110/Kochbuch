@@ -5,9 +5,8 @@
 import { syncAdapter } from './sync-adapter.js';
 
 const DB_NAME = 'kochbuch';
-const DB_VERSION = 2;
+const DB_VERSION = 1;
 const STORE = 'recipes';
-const SHOPPING_STORE = 'shoppingLists';
 
 let dbPromise = null;
 
@@ -21,9 +20,6 @@ function openDB() {
         const store = db.createObjectStore(STORE, { keyPath: 'id' });
         store.createIndex('category', 'category', { unique: false });
         store.createIndex('title', 'title', { unique: false });
-      }
-      if (!db.objectStoreNames.contains(SHOPPING_STORE)) {
-        db.createObjectStore(SHOPPING_STORE, { keyPath: 'id' });
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -198,48 +194,4 @@ export async function markCooked(id) {
   if (!recipe) return null;
   recipe.lastCookedAt = Date.now();
   return saveRecipe(recipe);
-}
-
-export async function getAllShoppingLists() {
-  const store = await tx(SHOPPING_STORE, 'readonly');
-  return new Promise((resolve, reject) => {
-    const req = store.getAll();
-    req.onsuccess = () => resolve(req.result.sort((a, b) =>
-      (b.updatedAt || 0) - (a.updatedAt || 0)
-    ));
-    req.onerror = () => reject(req.error);
-  });
-}
-
-export async function saveShoppingList(list) {
-  const now = Date.now();
-  const updated = {
-    ...list,
-    name: String(list.name || '').trim(),
-    items: Array.isArray(list.items) ? list.items : [],
-    createdAt: list.createdAt || now,
-    updatedAt: now,
-  };
-  if (!updated.id) updated.id = uuid();
-  if (!updated.name) throw new Error('SHOPPING_LIST_NAME_REQUIRED');
-  const store = await tx(SHOPPING_STORE, 'readwrite');
-  await new Promise((resolve, reject) => {
-    const req = store.put(updated);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  });
-  return updated;
-}
-
-export async function deleteShoppingList(id) {
-  const store = await tx(SHOPPING_STORE, 'readwrite');
-  await new Promise((resolve, reject) => {
-    const req = store.delete(id);
-    req.onsuccess = () => resolve();
-    req.onerror = () => reject(req.error);
-  });
-}
-
-export function blankShoppingList(name = 'Einkaufsliste') {
-  return { id: uuid(), name, items: [], createdAt: Date.now(), updatedAt: Date.now() };
 }

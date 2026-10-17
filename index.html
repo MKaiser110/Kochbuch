@@ -38,17 +38,6 @@
 
 <main id="app"></main>
 
-<nav class="tab-bar" aria-label="Hauptnavigation">
-  <a class="tab-link active" href="#cookbook" data-tab="cookbook" aria-current="page">
-    <span aria-hidden="true">▤</span>
-    <span>Kochbuch</span>
-  </a>
-  <a class="tab-link" href="#shopping" data-tab="shopping">
-    <span aria-hidden="true">🛒</span>
-    <span>Einkaufslisten</span>
-  </a>
-</nav>
-
 <!-- Templates -->
 <template id="tpl-overview">
   <div class="controls">
@@ -121,7 +110,6 @@
       <input type="checkbox" class="wake-lock-checkbox">
       Bildschirm beim Kochen an lassen
     </label>
-    <button class="btn-shopping-add">Zur Einkaufsliste hinzufügen</button>
     <button class="btn-cook-mode">Kochmodus starten</button>
     <section>
       <h3>Zutaten</h3>
@@ -158,57 +146,6 @@
       <button class="btn-delete">Löschen</button>
     </div>
   </article>
-</template>
-
-<template id="tpl-shopping">
-  <section class="shopping-view" aria-label="Einkaufslisten">
-    <div class="shopping-list-toolbar">
-      <label class="shopping-list-picker-label">Liste
-        <select class="shopping-list-picker" aria-label="Einkaufsliste auswählen"></select>
-      </label>
-      <div class="shopping-list-actions">
-        <button class="btn-secondary shopping-list-create" type="button">＋ Neu</button>
-        <button class="btn-secondary shopping-list-rename" type="button">Umbenennen</button>
-        <button class="btn-secondary shopping-list-delete" type="button">Löschen</button>
-      </div>
-    </div>
-    <label class="shopping-search-label" for="shopping-search">Lebensmittel hinzufügen</label>
-    <input id="shopping-search" class="shopping-search" type="search" placeholder="Zutat oder Lebensmittel suchen…">
-    <div class="shopping-suggestions" aria-live="polite"></div>
-    <h2 class="shopping-items-heading">Auf der Liste</h2>
-    <div class="shopping-items-grid"></div>
-    <p class="shopping-empty" hidden>Noch keine Artikel. Suche ein Lebensmittel und tippe darauf, um es hinzuzufügen.</p>
-  </section>
-</template>
-
-<template id="tpl-shopping-recipe">
-  <div class="sheet shopping-recipe-sheet">
-    <h2>Zur Einkaufsliste hinzufügen</h2>
-    <p class="hint">Wähle die Zutaten aus, die du noch einkaufen möchtest.</p>
-    <label class="shopping-target-label">Zielliste
-      <select class="shopping-target-list"></select>
-    </label>
-    <div class="ingredient-checklist shopping-recipe-ingredients"></div>
-    <div class="form-actions">
-      <button class="btn-primary shopping-recipe-confirm" type="button">Auswahl hinzufügen</button>
-      <button class="btn-secondary shopping-recipe-cancel" type="button">Abbrechen</button>
-    </div>
-  </div>
-</template>
-
-<template id="tpl-shopping-list-name">
-  <div class="sheet">
-    <h2 class="shopping-list-name-title"></h2>
-    <form class="shopping-list-name-form">
-      <label>Name der Einkaufsliste
-        <input class="shopping-list-name-input" type="text" required maxlength="60" autocomplete="off">
-      </label>
-      <div class="form-actions">
-        <button class="btn-primary shopping-list-name-submit" type="submit"></button>
-        <button class="btn-secondary shopping-list-name-cancel" type="button">Abbrechen</button>
-      </div>
-    </form>
-  </div>
 </template>
 
 <template id="tpl-cook">
