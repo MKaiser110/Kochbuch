@@ -58,6 +58,7 @@ export function blankRecipe() {
     source: null,         // URL oder null
     createdAt: Date.now(),
     updatedAt: Date.now(),
+    lastCookedAt: null,   // Zeitstempel oder null — für Sortierung "zuletzt gekocht"
   };
 }
 
@@ -92,7 +93,6 @@ function migrate(recipe) {
   if (recipe.rating < 0) recipe.rating = 0;
   if (recipe.rating > 5) recipe.rating = 5;
   recipe.notes = typeof recipe.notes === 'string' ? recipe.notes : '';
-  delete recipe.lastCookedAt;
   delete recipe.category;
   return recipe;
 }
@@ -118,7 +118,6 @@ export async function getRecipe(id) {
 export async function saveRecipe(recipe) {
   recipe.updatedAt = Date.now();
   recipe.tags = normalizeTags(recipe.tags);
-  delete recipe.lastCookedAt;
   delete recipe.category;
   const store = await tx(STORE, 'readwrite');
   await new Promise((resolve, reject) => {
@@ -188,4 +187,11 @@ export async function getAllIngredientNames() {
     }
   }
   return [...names].sort((a, b) => a.localeCompare(b, 'de'));
+}
+
+export async function markCooked(id) {
+  const recipe = await getRecipe(id);
+  if (!recipe) return null;
+  recipe.lastCookedAt = Date.now();
+  return saveRecipe(recipe);
 }

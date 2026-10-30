@@ -2,10 +2,11 @@ import { getAllRecipes, getRecipe, saveRecipe, deleteRecipe, getAllTags, getAllI
 import { scaleIngredients, formatAmount } from './scaling.js';
 import { importFromUrl, extractFromHtml, extractFromReaderText, parseIngredientLine } from './recipe-import.js';
 import { recognizeImage, draftRecipeFromOcrText } from './ocr-import.js';
-import { exportRecipesToFile, exportRecipeToFile, importRecipeFromFile, importRecipesFromFile } from './export-import.js';
+import { exportRecipesToFile, importRecipesFromFile } from './export-import.js';
 import { compressImageToDataUrl } from './image-utils.js';
 import { enableWakeLock, disableWakeLock, isSupported as wakeLockSupported } from './wake-lock.js';
 import { preparePdfAssets, exportRecipePdf } from './pdf-export.js';
+import { encodeSharedRecipe, decodeSharedRecipe } from './recipe-share.js';
 
 const app = document.getElementById('app');
 const pageTitle = document.getElementById('page-title');
@@ -18,7 +19,16 @@ const overlay = document.getElementById('sheet-overlay');
 window.addEventListener('hashchange', route);
 window.addEventListener('DOMContentLoaded', route);
 btnAdd.addEventListener('click', openAddMenu);
-btnBack.addEventListener('click', () => { location.hash = ''; });
+btnBack.addEventListener('click', goBack);
+
+// Zurück-Pfeil: Bearbeiten -> Rezeptseite des bearbeiteten Rezepts,
+// Kochmodus -> Rezeptseite, alles andere (Rezept, Neu) -> Hauptseite.
+function goBack() {
+  const hash = location.hash.slice(1);
+  if (hash.startsWith('edit/')) location.hash = `recipe/${hash.slice('edit/'.length)}`;
+  else if (hash.startsWith('cook/')) location.hash = `recipe/${hash.slice('cook/'.length).split('?')[0]}`;
+  else location.hash = '';
+}
 document.getElementById('btn-data-menu').addEventListener('click', openDataMenu);
 
 // ---------- Export / Import (Rezepte als Datei) ----------
@@ -26,6 +36,7 @@ document.getElementById('btn-data-menu').addEventListener('click', openDataMenu)
 function openDataMenu() {
   openSheet('tpl-data-menu', node => {
     const status = node.querySelector('#data-status');
+    const fileInput = node.querySelector('#data-import-file');
 
     node.querySelector('#data-export').addEventListener('click', async () => {
       status.textContent = 'Exportiere …';
@@ -37,12 +48,58 @@ function openDataMenu() {
       }
     });
 
-    async function importFile(input, importer) {
-      const file = input.files[0];
+    node.querySelector('#data-sync-link').addEventListener('click', async () => {
+      status.textContent = 'Erzeuge Backup-Link …';
+      try {
+        const recipes = await getAllRecipes();
+        const omittedImages = recipes.filter(recipe => typeof recipe.image === 'string' && recipe.image.startsWith('data:')).length;
+        const linkRecipes = recipes.map(recipe => ({
+          ...recipe,
+          image: typeof recipe.image === 'string' && recipe.image.startsWith('data:') ? null : recipe.image,
+        }));
+        const payload = { type: 'kochbuch-backup', version: 3, exportedAt: new Date().toISOString(), recipes: linkRecipes };
+        const encoded = await encodeBackupPayload(payload);
+        const url = `${location.origin}${location.pathname}#backup=${encoded}`;
+        if (navigator.clipboard) {
+          await navigator.clipboard.writeText(url);
+          status.textContent = omittedImages
+            ? `Kompakter Backup-Link kopiert. ${omittedImages} eingebettete(s) Bild(er) sind nur im Datei-Export enthalten.`
+            : 'Kompakter Backup-Link in die Zwischenablage kopiert.';
+        } else {
+          prompt('Backup-Link:', url);
+          status.textContent = omittedImages
+            ? `Backup-Link bereit. ${omittedImages} eingebettete(s) Bild(er) sind nur im Datei-Export enthalten.`
+            : 'Backup-Link bereit – bitte kopieren.';
+        }
+      } catch {
+        status.textContent = 'Backup-Link konnte nicht erstellt werden.';
+      }
+    });
+
+    node.querySelector('#data-import').addEventListener('click', () => fileInput.click());
+    node.querySelector('#data-import-link').addEventListener('click', async () => {
+      const shareUrl = prompt('Füge hier den Backup-Link ein:', '');
+      if (!shareUrl) return;
+      const match = /#backup=([^&]+)/.exec(shareUrl);
+      if (!match) {
+        status.textContent = 'Das ist kein gültiger Backup-Link.';
+        return;
+      }
+      status.textContent = 'Importiere Backup …';
+      try {
+        const imported = await importBackupFromHash(match[0].slice(1));
+        status.textContent = imported ? 'Backup erfolgreich importiert.' : 'Backup konnte nicht importiert werden.';
+      } catch {
+        status.textContent = 'Backup-Link fehlerhaft.';
+      }
+    });
+
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files[0];
       if (!file) return;
       status.textContent = 'Importiere …';
       try {
-        const { imported, skipped, duplicatesSkipped, total } = await importer(
+        const { imported, skipped, duplicatesSkipped, total } = await importRecipesFromFile(
           file,
           async count => confirm(
             `${count} Rezept(e) in der Datei scheinen bereits vorhanden zu sein (gleicher Titel oder gleiche Quelle).\n\n` +
@@ -58,19 +115,10 @@ function openDataMenu() {
         if (location.hash === '' || location.hash === '#') renderOverview();
       } catch (err) {
         status.textContent = err.message === 'INVALID_JSON' || err.message === 'INVALID_FORMAT'
-          ? 'Datei hat kein gültiges Kochbuch-Format.'
+          ? 'Datei ist kein gültiger Kochbuch-Export.'
           : 'Import fehlgeschlagen.';
-      } finally {
-        input.value = '';
       }
-    }
-
-    const allRecipesInput = node.querySelector('#data-import-file');
-    const singleRecipeInput = node.querySelector('#data-import-single-file');
-    node.querySelector('#data-import').addEventListener('click', () => allRecipesInput.click());
-    node.querySelector('#data-import-single').addEventListener('click', () => singleRecipeInput.click());
-    allRecipesInput.addEventListener('change', () => importFile(allRecipesInput, importRecipesFromFile));
-    singleRecipeInput.addEventListener('change', () => importFile(singleRecipeInput, importRecipeFromFile));
+    });
 
     node.querySelector('#data-cancel').addEventListener('click', closeSheet);
   });
@@ -83,9 +131,112 @@ let cleanupView = null;
 let routeSeq = 0;
 let visualViewportCleanup = null;
 
+function decodePayload(value) {
+  const binary = atob(value);
+  const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+function bytesToBase64Url(bytes) {
+  let binary = '';
+  for (let offset = 0; offset < bytes.length; offset += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
+  }
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64UrlToBytes(value) {
+  const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(base64 + '='.repeat((4 - base64.length % 4) % 4));
+  return Uint8Array.from(binary, char => char.charCodeAt(0));
+}
+
+async function encodeBackupPayload(payload) {
+  const bytes = new TextEncoder().encode(JSON.stringify(payload));
+  if (typeof CompressionStream === 'function' && typeof DecompressionStream === 'function') {
+    const compressed = await new Response(
+      new Blob([bytes]).stream().pipeThrough(new CompressionStream('gzip'))
+    ).arrayBuffer();
+    return `gzip.${bytesToBase64Url(new Uint8Array(compressed))}`;
+  }
+  return `plain.${bytesToBase64Url(bytes)}`;
+}
+
+async function decodeBackupPayload(value) {
+  if (value.startsWith('gzip.')) {
+    const bytes = base64UrlToBytes(value.slice('gzip.'.length));
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return JSON.parse(await new Response(stream).text());
+  }
+  if (value.startsWith('plain.')) {
+    return JSON.parse(new TextDecoder().decode(base64UrlToBytes(value.slice('plain.'.length))));
+  }
+  return decodePayload(value);
+}
+
+async function createRecipeShareLink(recipe) {
+  const payload = await encodeSharedRecipe(recipe);
+  return `${location.origin}${location.pathname}#share=${payload}`;
+}
+
+async function importSharedRecipeFromHash(hash) {
+  if (!hash) return false;
+  const match = /^share=(.+)$/.exec(hash);
+  if (!match) { return false; }
+  try {
+    const sharedRecipe = await decodeSharedRecipe(match[1]);
+    if (!sharedRecipe) return false;
+    const recipe = { ...sharedRecipe, id: sharedRecipe.id || crypto.randomUUID?.() || `${Date.now()}` };
+    const existing = await getAllRecipes();
+    const duplicate = findDuplicate(recipe, existing);
+    if (duplicate && !confirm(`Dieses geteilte Rezept ist schon ähnlich zu „${duplicate.recipe.title}“ vorhanden. Trotzdem importieren?`)) {
+      return true;
+    }
+    await saveRecipe({ ...recipe, createdAt: recipe.createdAt || Date.now(), updatedAt: Date.now() });
+    location.hash = `recipe/${recipe.id}`;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function importBackupFromHash(hash) {
+  if (!hash) return false;
+  const match = /^backup=(.+)$/.exec(hash);
+  if (!match) return false;
+  try {
+    const payload = await decodeBackupPayload(match[1]);
+    if (!payload || payload.type !== 'kochbuch-backup' || !Array.isArray(payload.recipes)) return false;
+    let imported = 0;
+    for (const recipe of payload.recipes) {
+      const candidate = { ...recipe, id: recipe.id || crypto.randomUUID?.() || `${Date.now()}-${imported}` };
+      const existing = await getAllRecipes();
+      const duplicate = findDuplicate(candidate, existing);
+      if (duplicate && !confirm(`Ein Backup-Rezept ähnelt „${duplicate.recipe.title}“. Trotzdem importieren?`)) continue;
+      await saveRecipe({ ...candidate, updatedAt: Date.now() });
+      imported++;
+    }
+    if (imported > 0) {
+      location.hash = '';
+      renderOverview();
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function route() {
-  const hash = location.hash.slice(1); // '' | 'recipe/<id>' | 'edit/<id>' | 'new' | 'cook/<id>?s=<portionen>'
+  const hash = location.hash.slice(1); // '' | 'recipe/<id>' | 'edit/<id>' | 'new' | 'cook/<id>?s=<portionen>' | 'share=...' | 'backup=...'
   closeSheet();
+  if (hash.startsWith('share=')) {
+    const imported = await importSharedRecipeFromHash(hash);
+    if (imported) return;
+  }
+  if (hash.startsWith('backup=')) {
+    const imported = await importBackupFromHash(hash);
+    if (imported) return;
+  }
   routeSeq++;
   // Im Kochmodus Header-Aktionen ausblenden (kein versehentliches Tippen beim Kochen)
   document.body.classList.toggle('cook-mode', hash.startsWith('cook/'));
@@ -119,7 +270,7 @@ async function route() {
 
 let currentSearch = '';
 let currentTag = null;
-let currentSort = 'added'; // 'added' | 'alpha' | 'favorites'
+let currentSort = 'added'; // 'added' | 'alpha' | 'cooked' | 'favorites'
 let selectedIngredients = new Set(); // aktiver Zutatenfilter (leer = aus)
 
 async function renderOverview() {
@@ -282,8 +433,11 @@ function sortRecipes(list, sort) {
   const sorted = [...list];
   if (sort === 'alpha') {
     sorted.sort((a, b) => a.title.localeCompare(b.title, 'de'));
+  } else if (sort === 'cooked') {
+    // Nie gekochte Rezepte ans Ende, sonst zuletzt gekocht zuerst.
+    sorted.sort((a, b) => (b.lastCookedAt || 0) - (a.lastCookedAt || 0));
   } else if (sort === 'favorites') {
-    sorted.sort((a, b) => Number(b.favorite) - Number(a.favorite) || b.createdAt - a.createdAt);
+    sorted.sort((a, b) => Number(b.favorite) - Number(a.favorite) || (b.lastCookedAt || 0) - (a.lastCookedAt || 0) || b.createdAt - a.createdAt);
   } else {
     sorted.sort((a, b) => b.createdAt - a.createdAt);
   }
@@ -435,20 +589,7 @@ async function renderDetail(id) {
     stepList.appendChild(li);
   });
 
-  root.querySelector('.btn-recipe-export').addEventListener('click', async event => {
-    const button = event.currentTarget;
-    button.disabled = true;
-    button.textContent = 'Exportiere …';
-    try {
-      await exportRecipeToFile(recipe);
-      button.textContent = 'Exportiert';
-    } catch {
-      alert('Rezeptdatei konnte nicht erstellt werden.');
-      button.textContent = 'Als Datei exportieren';
-    } finally {
-      button.disabled = false;
-    }
-  });
+  root.querySelector('.btn-share').addEventListener('click', () => shareRecipe(recipe));
 
   // Kochmodus: gewählte Portionenzahl wird per Hash-Parameter mitgegeben.
   root.querySelector('.btn-cook-mode').addEventListener('click', () => {
@@ -471,6 +612,24 @@ async function renderDetail(id) {
       pdfBtn.disabled = false;
       pdfBtn.textContent = 'PDF';
     }
+  });
+
+  const cookedBtn = root.querySelector('.btn-cooked');
+  function updateCookedLabel() {
+    if (recipe.lastCookedAt) {
+      const d = new Date(recipe.lastCookedAt);
+      cookedBtn.textContent = `Zuletzt gekocht: ${d.toLocaleDateString('de-DE')}`;
+      cookedBtn.classList.add('done');
+    } else {
+      cookedBtn.textContent = 'Heute gekocht';
+      cookedBtn.classList.remove('done');
+    }
+  }
+  updateCookedLabel();
+  cookedBtn.addEventListener('click', async () => {
+    recipe.lastCookedAt = Date.now();
+    await saveRecipe(recipe);
+    updateCookedLabel();
   });
 
   const wakeCheckbox = root.querySelector('.wake-lock-checkbox');
@@ -593,7 +752,9 @@ async function renderCook(id, servingsFromUrl) {
   timerResetBtn.addEventListener('click', () => { stopTimer(); setTimerFromInput(); });
   updateTimerDisplay();
 
-  function finish() {
+  async function finish() {
+    recipe.lastCookedAt = Date.now();
+    await saveRecipe(recipe);
     location.replace(`#recipe/${id}`);
   }
 
@@ -654,6 +815,64 @@ async function renderCook(id, servingsFromUrl) {
 
   renderStep();
   if (wakeLockSupported()) enableWakeLock();
+}
+
+function buildShareText(recipe) {
+  const lines = [recipe.title, ''];
+  if (recipe.tags.length) lines.push(`Tags: ${recipe.tags.join(', ')}`);
+  lines.push(`Portionen: ${recipe.servingsBase}`, '', 'Zutaten:');
+  recipe.ingredients.forEach(ing => {
+    lines.push(`- ${formatAmount(ing.amount, ing.unit)} ${ing.name}`.trim());
+  });
+  lines.push('', 'Zubereitung:');
+  recipe.steps.forEach((step, i) => lines.push(`${i + 1}. ${step}`));
+  return lines.join('\n');
+}
+
+async function shareRecipe(recipe) {
+  const shareUrl = await createRecipeShareLink(recipe);
+  const shareText = buildShareText(recipe);
+
+  openSheet('tpl-share-choice', node => {
+    node.querySelector('#share-link').addEventListener('click', async () => {
+      closeSheet();
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: recipe.title, url: shareUrl });
+          return;
+        } catch {
+          // Nutzer hat Teilen-Dialog abgebrochen — kein Fehler.
+        }
+      }
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(shareUrl);
+        alert('Der Rezept-Link wurde in die Zwischenablage kopiert.');
+        return;
+      }
+      alert('Teilen wird in diesem Browser nicht unterstützt.');
+    });
+
+    node.querySelector('#share-text').addEventListener('click', async () => {
+      closeSheet();
+      const payload = `${shareText}\n\nLink: ${shareUrl}`;
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: recipe.title, text: payload });
+          return;
+        } catch {
+          // Nutzer hat Teilen-Dialog abgebrochen — kein Fehler.
+        }
+      }
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(payload);
+        alert('Rezepttext und Link wurden in die Zwischenablage kopiert.');
+        return;
+      }
+      alert('Teilen wird in diesem Browser nicht unterstützt.');
+    });
+
+    node.querySelector('#share-cancel').addEventListener('click', closeSheet);
+  });
 }
 
 // ---------- Rezept hinzufügen: Auswahl-Sheet ----------
@@ -936,7 +1155,7 @@ async function renderEditForm(id) {
 
   document.getElementById('add-ingredient-row').addEventListener('click', () => addIngredientRow());
   document.getElementById('add-step-row').addEventListener('click', () => addStepRow());
-  document.getElementById('form-cancel').addEventListener('click', () => history.back());
+  document.getElementById('form-cancel').addEventListener('click', goBack);
 
   form.addEventListener('submit', async e => {
     e.preventDefault();

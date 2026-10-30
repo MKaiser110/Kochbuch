@@ -18,6 +18,7 @@
 // nötig" aus den Vorgaben nicht mehr erfüllt — daher hier bewusst so gelöst.
 
 import { blankRecipe, normalizeTags } from './db.js';
+import { decodeSharedRecipe } from './recipe-share.js';
 
 const CORS_PROXIES = [
   url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
@@ -30,11 +31,22 @@ const CORS_PROXIES = [
 // der Praxis deutlich zuverlässiger erreichbar als die generischen Proxies).
 const READER_PREFIX = 'https://r.jina.ai/';
 
+async function tryDecodeSharedRecipeUrl(parsedUrl) {
+  const hash = parsedUrl.hash.slice(1);
+  if (!hash.startsWith('share=')) return null;
+  const recipe = await decodeSharedRecipe(hash.slice('share='.length));
+  if (!recipe) throw new Error('INVALID_SHARED_RECIPE');
+  return recipe;
+}
+
 export async function importFromUrl(url) {
   const parsedUrl = new URL(url);
   if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
     throw new Error('INVALID_URL');
   }
+
+  const sharedRecipe = await tryDecodeSharedRecipeUrl(parsedUrl);
+  if (sharedRecipe) return sharedRecipe;
 
   // 1) direkter Fetch — funktioniert nur, wenn die Zielseite CORS erlaubt
   const direct = await tryDirectFetch(url);

@@ -343,7 +343,7 @@ body {
 .detail-actions { display: flex; gap: 10px; margin-top: 12px; }
 .detail-actions.compact { margin-top: 18px; }
 .detail-actions:first-of-type { margin-top: 24px; }
-.btn-edit, .btn-delete, .btn-pdf, .btn-recipe-export, .btn-favorite {
+.btn-edit, .btn-delete, .btn-share, .btn-pdf, .btn-cooked, .btn-favorite {
   min-height: 44px;
   flex: 1;
   padding: 10px 12px;
@@ -355,6 +355,7 @@ body {
   cursor: pointer;
 }
 .btn-delete { color: var(--danger); }
+.btn-cooked.done { border-color: var(--line-strong); color: var(--ink-soft); }
 .btn-favorite { flex: 0 0 auto; min-width: 118px; }
 .btn-favorite.active { border-color: #f0c24a; background: #fff3c9; color: #7c5d00; }
 .rating-panel {
