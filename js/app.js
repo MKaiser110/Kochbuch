@@ -18,7 +18,16 @@ const overlay = document.getElementById('sheet-overlay');
 window.addEventListener('hashchange', route);
 window.addEventListener('DOMContentLoaded', route);
 btnAdd.addEventListener('click', openAddMenu);
-btnBack.addEventListener('click', () => { location.hash = ''; });
+btnBack.addEventListener('click', () => {
+  // Beim Bearbeiten eines bestehenden Rezepts: zurück zur Detailseite dieses Rezepts.
+  // Überall sonst: zur Übersicht.
+  const hash = location.hash.slice(1);
+  if (hash.startsWith('edit/')) {
+    location.hash = `recipe/${hash.slice('edit/'.length)}`;
+  } else {
+    location.hash = '';
+  }
+});
 document.getElementById('btn-data-menu').addEventListener('click', openDataMenu);
 
 // ---------- Export / Import (Rezepte als Datei) ----------
