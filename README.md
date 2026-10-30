@@ -48,10 +48,10 @@ Dann `http://localhost:8000` öffnen. Service Worker funktioniert unter
   Entwurf und sollte vor dem Speichern im Formular geprüft werden.
 - **`js/scaling.js`**: skaliert Mengen linear zur Portionenzahl, rundet auf
   küchentaugliche Werte.
-- **Backup-Link**: Der teilbare Link wird, wenn vom Browser unterstützt,
-  komprimiert und lässt eingebettete Bilddaten aus, damit er kürzer bleibt.
-  Für eine vollständige Sicherung inklusive Bildern den Datei-Export nutzen.
-  Ältere, unkomprimierte Backup-Links bleiben importierbar.
+- **Datei-Export und -Import**: Das gesamte Kochbuch kann als JSON-Datei
+  exportiert und wieder importiert werden. Einzelne Rezepte lassen sich auf
+  ihrer Detailseite ebenfalls als JSON-Datei exportieren und über
+  „Einzelnes Rezept aus Datei importieren“ einlesen.
 
 ## Getroffene Annahmen
 - Einheitensystem: metrisch.
