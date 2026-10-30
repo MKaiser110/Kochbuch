@@ -27,6 +27,25 @@ export async function exportRecipesToFile() {
   return recipes.length;
 }
 
+export async function exportRecipeToFile(recipe) {
+  const payload = {
+    format: 'kochbuch-recipe-export',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    recipe,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeTitle = String(recipe.title || '').replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_').trim().slice(0, 100) || 'rezept';
+  a.href = url;
+  a.download = `rezept-${safeTitle}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 /**
  * Importiert Rezepte aus einer zuvor exportierten JSON-Datei.
  * Rezepte mit bereits vorhandener id werden überschrieben (Update),
@@ -49,7 +68,24 @@ export async function importRecipesFromFile(file, askAboutDuplicates) {
 
   const recipes = Array.isArray(data) ? data : data.recipes;
   if (!Array.isArray(recipes)) throw new Error('INVALID_FORMAT');
+  return importRecipes(recipes, askAboutDuplicates);
+}
 
+export async function importRecipeFromFile(file, askAboutDuplicates) {
+  const text = await file.text();
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error('INVALID_JSON');
+  }
+  if (data?.format !== 'kochbuch-recipe-export' || !data.recipe || typeof data.recipe !== 'object') {
+    throw new Error('INVALID_FORMAT');
+  }
+  return importRecipes([data.recipe], askAboutDuplicates);
+}
+
+async function importRecipes(recipes, askAboutDuplicates) {
   // Gültige Rezepte normalisieren (inkl. Migration category -> tags).
   const valid = [];
   let invalid = 0;
@@ -71,7 +107,6 @@ export async function importRecipesFromFile(file, askAboutDuplicates) {
       source: r.source ?? null,
       createdAt: r.createdAt || Date.now(),
       updatedAt: Date.now(),
-      lastCookedAt: r.lastCookedAt ?? null,
     });
   }
 

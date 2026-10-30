@@ -56,7 +56,6 @@
         <div id="sort-menu" class="sort-menu" role="listbox" aria-label="Sortierung" hidden>
                 <button class="sort-option" type="button" role="option" data-value="added" aria-selected="false">Zuletzt hinzugefügt</button>
           <button class="sort-option" type="button" role="option" data-value="alpha" aria-selected="false">Alphabetisch</button>
-          <button class="sort-option" type="button" role="option" data-value="cooked" aria-selected="false">Zuletzt gekocht</button>
           <button class="sort-option" type="button" role="option" data-value="favorites" aria-selected="false">Favoriten</button>
         </div>
       </div>
@@ -121,7 +120,7 @@
     </section>
     <div class="detail-actions compact">
       <button class="btn-favorite" type="button">☆ Favorit</button>
-      <button class="btn-share">Teilen</button>
+      <button class="btn-recipe-export">Als Datei exportieren</button>
       <button class="btn-pdf">PDF</button>
     </div>
     <div class="rating-panel">
@@ -138,9 +137,6 @@
       <span>Notiz / Kommentar</span>
       <textarea class="recipe-notes" rows="3" placeholder="Notiz für dieses Rezept…"></textarea>
     </label>
-    <div class="detail-actions">
-      <button class="btn-cooked">Heute gekocht</button>
-    </div>
     <div class="detail-actions">
       <button class="btn-edit">Bearbeiten</button>
       <button class="btn-delete">Löschen</button>
@@ -187,36 +183,18 @@
       <svg class="option-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"></path></svg>
       <span>Alle Rezepte exportieren (Datei)</span>
     </button>
-    <button id="data-sync-link" class="sheet-option">
-      <svg class="option-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 1 1-7-7l1-1"></path></svg>
-      <span>Backup-Link zum Teilen erstellen</span>
-    </button>
     <button id="data-import" class="sheet-option">
       <svg class="option-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15V3m0 0L8 7m4-4 4 4M5 17v3h14v-3"></path></svg>
-      <span>Rezepte aus Datei importieren</span>
+      <span>Alle Rezepte aus Datei importieren</span>
     </button>
-    <button id="data-import-link" class="sheet-option">
-      <svg class="option-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 12h12M12 6v12"></path></svg>
-      <span>Backup-Link importieren</span>
+    <button id="data-import-single" class="sheet-option">
+      <svg class="option-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 15V3m0 0L8 7m4-4 4 4M5 17v3h14v-3"></path></svg>
+      <span>Einzelnes Rezept aus Datei importieren</span>
     </button>
     <input id="data-import-file" type="file" accept="application/json,.json" hidden>
+    <input id="data-import-single-file" type="file" accept="application/json,.json" hidden>
     <p id="data-status" class="status"></p>
     <button id="data-cancel" class="sheet-cancel">Schließen</button>
-  </div>
-</template>
-
-<template id="tpl-share-choice">
-  <div class="sheet">
-    <h2>Rezept teilen</h2>
-    <button id="share-link" class="sheet-option">
-      <svg class="option-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10 13a5 5 0 0 1 0-7l1-1a5 5 0 0 1 7 7l-1 1M14 11a5 5 0 0 1 0 7l-1 1a5 5 0 1 1-7-7l1-1"></path></svg>
-      <span>Als Link teilen</span>
-    </button>
-    <button id="share-text" class="sheet-option">
-      <svg class="option-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h9"></path></svg>
-      <span>Als Text teilen</span>
-    </button>
-    <button id="share-cancel" class="sheet-cancel">Abbrechen</button>
   </div>
 </template>
 
