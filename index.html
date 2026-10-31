@@ -249,11 +249,11 @@
 
 <template id="tpl-delete-confirm">
   <div class="sheet confirm-sheet">
-    <h2>Rezept löschen?</h2>
+    <h2>Bestätigung erforderlich</h2>
     <p id="delete-confirm-message" class="confirm-message"></p>
     <div class="confirm-actions">
       <button id="delete-cancel" class="btn-secondary" type="button">Abbrechen</button>
-      <button id="delete-confirm" class="btn-danger" type="button">Rezept löschen</button>
+      <button id="delete-confirm" class="btn-danger" type="button">Bestätigen</button>
     </div>
   </div>
 </template>
@@ -307,6 +307,7 @@
       <h3>Notizen & Bild</h3>
       <label>Notiz / Kommentar <textarea name="notes" rows="3" placeholder="Was war besonders gut, was beim nächsten Mal besser machen?"></textarea></label>
       <label>Bild (optional) <input name="image" type="file" accept="image/*"></label>
+      <p id="image-status" class="status" role="status">Maximale Dateigröße: 15 MB.</p>
       <div id="image-preview"></div>
     </section>
 
