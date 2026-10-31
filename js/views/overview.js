@@ -118,6 +118,16 @@ function renderTagChips(tags, renderFiltered) {
   // Gewählter Tag existiert evtl. nicht mehr (Rezept gelöscht/umbenannt) -> Filter zurücksetzen
   if (overviewState.tag && !tags.includes(overviewState.tag)) overviewState.tag = null;
   const chipWrap = document.getElementById('tag-filter');
+  chipWrap.addEventListener('pointerdown', event => {
+    if (!event.target.closest('.chip')) return;
+    const currentScroll = chipWrap.scrollLeft;
+    chipWrap.style.webkitOverflowScrolling = 'auto';
+    chipWrap.scrollLeft = currentScroll;
+    requestAnimationFrame(() => {
+      chipWrap.style.webkitOverflowScrolling = 'touch';
+      chipWrap.scrollLeft = currentScroll;
+    });
+  }, { passive: true });
   chipWrap.innerHTML = '';
   const allChip = makeChip('Alle', overviewState.tag === null, () => selectTag(null, chipWrap, renderFiltered));
   allChip.dataset.all = 'true';
