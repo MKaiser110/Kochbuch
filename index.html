@@ -62,9 +62,21 @@
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5"></path></svg>
         </button>
         <div id="sort-menu" class="sort-menu" role="listbox" aria-label="Sortierung" hidden>
-          <button class="sort-option" type="button" role="option" data-value="added" aria-selected="false">Zuletzt hinzugefügt</button>
-          <button class="sort-option" type="button" role="option" data-value="alpha" aria-selected="false">Alphabetisch</button>
-          <button class="sort-option" type="button" role="option" data-value="favorites" aria-selected="false">Favoriten</button>
+          <button class="sort-option" type="button" role="option" data-value="added" aria-selected="false">
+            <span class="sort-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8"></circle><path d="M12 7v5l3 2"></path></svg></span>
+            <span class="sort-option-label">Zuletzt hinzugefügt</span>
+            <span class="sort-option-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6"></path></svg></span>
+          </button>
+          <button class="sort-option" type="button" role="option" data-value="alpha" aria-selected="false">
+            <span class="sort-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m3 19 5-14 5 14M5 14h6"></path><path d="M17 7v10m0 0-2-2m2 2 2-2"></path></svg></span>
+            <span class="sort-option-label">Alphabetisch</span>
+            <span class="sort-option-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6"></path></svg></span>
+          </button>
+          <button class="sort-option" type="button" role="option" data-value="favorites" aria-selected="false">
+            <span class="sort-option-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"></path></svg></span>
+            <span class="sort-option-label">Favoriten</span>
+            <span class="sort-option-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6"></path></svg></span>
+          </button>
         </div>
       </div>
     </div>
