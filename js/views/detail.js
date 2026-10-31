@@ -6,7 +6,7 @@ import { scaleIngredients } from '../services/scaling.js';
 import { exportRecipeToFile } from '../services/export-import.js';
 import { preparePdfAssets, exportRecipePdf } from '../services/pdf-export.js';
 import { enableWakeLock, disableWakeLock, isSupported as wakeLockSupported } from '../services/wake-lock.js';
-import { openSheet, closeSheet } from '../sheets/sheet.js';
+import { confirmSheet } from '../sheets/sheet.js';
 import { appRoot, mountTemplate, setPageTitle, fillIngredientList } from '../utils/dom.js';
 import { currentNavigation, isStale } from '../view-lifecycle.js';
 
@@ -207,16 +207,14 @@ function setupWakeLockToggle(root) {
 
 function setupEditAndDelete(root, id, recipe) {
   root.querySelector('.btn-edit').addEventListener('click', () => { location.hash = `edit/${id}`; });
-  root.querySelector('.btn-delete').addEventListener('click', () => {
-    openSheet('tpl-delete-confirm', node => {
-      node.querySelector('#delete-confirm-message').textContent = `„${recipe.title}“ wirklich löschen?`;
-      node.querySelector('#delete-cancel').addEventListener('click', closeSheet);
-      node.querySelector('#delete-confirm').addEventListener('click', async event => {
-        event.currentTarget.disabled = true;
-        await deleteRecipe(id);
-        closeSheet();
-        location.hash = '';
-      });
+  root.querySelector('.btn-delete').addEventListener('click', async () => {
+    const confirmed = await confirmSheet({
+      title: 'Rezept löschen?',
+      message: `„${recipe.title}“ wirklich löschen?`,
+      confirmLabel: 'Rezept löschen',
     });
+    if (!confirmed) return;
+    await deleteRecipe(id);
+    location.hash = '';
   });
 }
