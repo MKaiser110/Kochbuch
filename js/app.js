@@ -36,6 +36,10 @@ if ('serviceWorker' in navigator) {
 
 
 function setupBottomNavigation() {
+  const style = document.createElement('style');
+  style.id = 'bottom-navigation-style';
+  style.textContent = '.shopping-nav{position:fixed;z-index:11;left:50%;bottom:calc(10px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;gap:6px;padding:5px;border:1px solid var(--line);border-radius:999px;background:var(--surface);box-shadow:0 5px 22px #0002}.shopping-nav button{min-height:42px;padding:0 18px;border:0;border-radius:999px;background:transparent;color:var(--ink-soft);font-weight:600}.shopping-nav button.active{background:var(--ink);color:var(--surface)}';
+  document.head.append(style);
   const nav = document.createElement('nav');
   nav.className = 'shopping-nav';
   nav.setAttribute('aria-label', 'Hauptnavigation');
@@ -68,7 +72,7 @@ function setupRecipeShoppingAction() {
   const addButton = () => {
     if (!location.hash.startsWith('#recipe/')) return;
     const detail = app.querySelector('.detail');
-    if (!detail || detail.querySelector('.btn-shopping-ingredients')) return;
+    if (!detail || detail.querySelector('.shopping-recipe-action')) return;
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'shopping-recipe-action';
