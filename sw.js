@@ -1,7 +1,7 @@
 // sw.js — cached die App-Shell, damit die App offline startet.
 // Rezeptdaten liegen ohnehin lokal in IndexedDB, nicht im Cache.
 
-const CACHE_NAME = 'kochbuch-shell-v38';
+const CACHE_NAME = 'kochbuch-shell-v39';
 const SHELL_FILES = [
   './',
   './index.html',

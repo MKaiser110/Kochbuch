@@ -57,3 +57,7 @@ Der Service-Worker-Cache steht jetzt auf `v37`. Die automatisierten Tests wurden
 ## iPhone-Ansicht (31.10.2026)
 
 Beim Öffnen des Erstellen-/Bearbeitenformulars wird die Seite an den Anfang zurückgesetzt, damit das Titelfeld nicht hinter der klebenden Kopfzeile liegt. Die Viewport-Einstellung und Touch-Gesten sperren Pinch-/Doppeltipp-Zoom für die iPhone-Web-App. Nach dieser Änderung wurden keine Tests ausgeführt.
+
+## iOS-Zoomsperre nachgebessert (31.10.2026)
+
+Da iOS die Viewport-Sperre weiterhin ignorierte, blockiert die App jetzt zusätzlich Mehrfinger-Zoom-Gesten sowie schnelle Doppeltipps per nicht-passiven Touch- und Gesture-Listenern. Service-Worker-Cache auf `v39` erhöht. Die Geste wurde hier nicht auf einem echten iPhone verifiziert.
