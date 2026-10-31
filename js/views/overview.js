@@ -118,8 +118,15 @@ function renderTagChips(tags, renderFiltered) {
   // Gewählter Tag existiert evtl. nicht mehr (Rezept gelöscht/umbenannt) -> Filter zurücksetzen
   if (overviewState.tag && !tags.includes(overviewState.tag)) overviewState.tag = null;
   const chipWrap = document.getElementById('tag-filter');
+  let pressedChip = null;
+  let pressX = 0;
+  let pressY = 0;
   chipWrap.addEventListener('pointerdown', event => {
-    if (!event.target.closest('.chip')) return;
+    const chip = event.target.closest('.chip');
+    if (!chip) return;
+    pressedChip = chip;
+    pressX = event.clientX;
+    pressY = event.clientY;
     const currentScroll = chipWrap.scrollLeft;
     chipWrap.style.webkitOverflowScrolling = 'auto';
     chipWrap.scrollLeft = currentScroll;
@@ -128,6 +135,16 @@ function renderTagChips(tags, renderFiltered) {
       chipWrap.scrollLeft = currentScroll;
     });
   }, { passive: true });
+  chipWrap.addEventListener('pointerup', event => {
+    const chip = pressedChip;
+    pressedChip = null;
+    if (!chip || !chip.isConnected || !chip.contains(event.target)
+        || Math.hypot(event.clientX - pressX, event.clientY - pressY) > 12) return;
+    // Scroll-Container können den nativen Click beim Abbrechen des Nachlaufs
+    // verwerfen. Löst den Click gezielt für den Tag unter dem Finger aus.
+    chip.click();
+  });
+  chipWrap.addEventListener('pointercancel', () => { pressedChip = null; });
   chipWrap.innerHTML = '';
   const allChip = makeChip('Alle', overviewState.tag === null, () => selectTag(null, chipWrap, renderFiltered));
   allChip.dataset.all = 'true';
@@ -140,6 +157,7 @@ function renderTagChips(tags, renderFiltered) {
 }
 
 function selectTag(tag, chipWrap, renderFiltered) {
+  if (overviewState.tag === tag) return;
   overviewState.tag = tag;
   chipWrap.querySelectorAll('.chip').forEach(chip => {
     chip.classList.toggle('active', chip.dataset.all === 'true'
