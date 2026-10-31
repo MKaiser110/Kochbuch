@@ -64,7 +64,7 @@ async function collectAppFiles() {
     }
   }
 
-  return [...urls.values()];
+  return [...urls.values()].map(url => url.href);
 }
 
 self.addEventListener('install', event => {
