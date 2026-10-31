@@ -44,7 +44,12 @@ export async function importFromUrl(input) {
 
   const error = new Error('IMPORT_FAILED');
   error.partialText = partialText.slice(0, 250000) || null;
+  error.code = looksLikeBlockedPage(partialText) ? 'SOURCE_BLOCKED' : 'RECIPE_NOT_FOUND';
   throw error;
+}
+
+function looksLikeBlockedPage(text) {
+  return /\b(?:403|forbidden|access denied|request blocked|captcha|verify (?:that )?you are human|enable javascript|just a moment|robots\.txt|429|too many requests)\b/i.test(text);
 }
 
 export function validateRecipeUrl(input) {

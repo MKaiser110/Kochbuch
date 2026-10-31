@@ -10,6 +10,8 @@ export function openUrlImport() {
     const status = node.querySelector('#url-status');
     const fallback = node.querySelector('#url-fallback');
     const fallbackText = node.querySelector('#url-fallback-text');
+    const fallbackSummary = node.querySelector('#url-fallback-summary');
+    const fallbackHint = node.querySelector('#url-fallback-hint');
 
     const fetchButton = node.querySelector('#url-fetch-btn');
     fetchButton.addEventListener('click', async () => {
@@ -31,10 +33,19 @@ export function openUrlImport() {
           status.textContent = 'Bitte eine gültige öffentliche http- oder https-Adresse eingeben.';
           return;
         }
-        status.textContent = 'Kein vollständiges Rezept erkannt. Du kannst den Seiteninhalt unten einfügen.';
+        const sourceBlocked = err?.code === 'SOURCE_BLOCKED';
+        status.textContent = sourceBlocked
+          ? 'Die Website blockiert den automatischen Abruf.'
+          : 'Es wurden keine vollständigen Rezeptdaten automatisch erkannt.';
+        fallbackSummary.textContent = sourceBlocked
+          ? 'Rezepttext manuell einfügen (Website blockiert den Abruf)'
+          : 'Rezepttext manuell einfügen';
+        fallbackHint.textContent = sourceBlocked
+          ? 'Öffne die Rezeptseite direkt im Browser. Kopiere dort Zutaten und Zubereitung und füge sie hier ein.'
+          : 'Öffne die Rezeptseite und füge Zutaten und Zubereitung hier ein. Andere Seitenbereiche werden ignoriert.';
         fallback.hidden = false;
         fallback.open = true;
-        if (err?.partialText) fallbackText.value = err.partialText;
+        fallbackText.value = sourceBlocked ? '' : (err?.partialText || '');
       } finally {
         fetchButton.disabled = false;
       }

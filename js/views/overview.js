@@ -1,6 +1,6 @@
 // overview.js — Übersicht: Suche, Sortierung, Tag-Chips, Zutatenfilter, Rezept-Kacheln.
 
-import { getAllRecipes, getAllTags } from '../core/db.js';
+import { getAllRecipes } from '../core/db.js';
 import { sortRecipes, filterRecipes } from '../core/recipe-query.js';
 import { overviewState } from '../state.js';
 import { appRoot, mountTemplate, setPageTitle, cloneTemplate, makeChip } from '../utils/dom.js';
@@ -12,29 +12,43 @@ export async function renderOverview() {
   setPageTitle('Kochbuch');
   mountTemplate('tpl-overview');
 
-  setupSearch();
-  setupSortMenu();
-
   const seq = currentNavigation();
-  const tags = await getAllTags();
+  const recipes = await getAllRecipes();
   if (isStale(seq)) return;
 
-  renderTagChips(tags);
+  const tags = [...new Set(recipes.flatMap(recipe => recipe.tags))]
+    .sort((a, b) => a.localeCompare(b, 'de'));
+  let sortedRecipes = sortRecipes(recipes, overviewState.sort);
+  const renderFiltered = () => renderGrid(sortedRecipes, recipes.length, seq);
+  const cleanupSearch = setupSearch(renderFiltered);
+  const cleanupSort = setupSortMenu(() => {
+    sortedRecipes = sortRecipes(recipes, overviewState.sort);
+    renderFiltered();
+  });
+  setViewCleanup(() => { cleanupSearch(); cleanupSort(); });
+  renderTagChips(tags, renderFiltered);
   setupIngredientFilterButton();
-  await renderGrid();
+  renderFiltered();
 }
 
-function setupSearch() {
+function setupSearch(renderFiltered) {
   const searchInput = document.getElementById('search');
   searchInput.value = overviewState.search;
-  searchInput.addEventListener('input', e => {
+  let renderFrame = 0;
+  const onSearchInput = e => {
     overviewState.search = e.target.value.toLowerCase();
-    renderGrid();
-  });
+    cancelAnimationFrame(renderFrame);
+    renderFrame = requestAnimationFrame(renderFiltered);
+  };
+  searchInput.addEventListener('input', onSearchInput);
+  return () => {
+    cancelAnimationFrame(renderFrame);
+    searchInput.removeEventListener('input', onSearchInput);
+  };
 }
 
 /** Sortier-Dropdown mit Tastaturbedienung. Registriert die Aufräumfunktion der Ansicht. */
-function setupSortMenu() {
+function setupSortMenu(onSortChanged) {
   const sortControl = appRoot.querySelector('.sort-control');
   const sortTrigger = document.getElementById('sort-select');
   const sortMenu = document.getElementById('sort-menu');
@@ -66,7 +80,7 @@ function setupSortMenu() {
       updateSortSelection();
       setSortMenuOpen(false);
       sortTrigger.focus();
-      renderGrid();
+      onSortChanged();
     });
     option.addEventListener('keydown', event => {
       const index = sortOptions.indexOf(option);
@@ -97,32 +111,32 @@ function setupSortMenu() {
     if (event.relatedTarget && !sortControl.contains(event.relatedTarget)) setSortMenuOpen(false);
   });
   document.addEventListener('pointerdown', closeSortMenuOutside);
-  setViewCleanup(() => document.removeEventListener('pointerdown', closeSortMenuOutside));
+  return () => document.removeEventListener('pointerdown', closeSortMenuOutside);
 }
 
-function renderTagChips(tags) {
+function renderTagChips(tags, renderFiltered) {
   // Gewählter Tag existiert evtl. nicht mehr (Rezept gelöscht/umbenannt) -> Filter zurücksetzen
   if (overviewState.tag && !tags.includes(overviewState.tag)) overviewState.tag = null;
   const chipWrap = document.getElementById('tag-filter');
   chipWrap.innerHTML = '';
-  const allChip = makeChip('Alle', overviewState.tag === null, () => selectTag(null, chipWrap));
+  const allChip = makeChip('Alle', overviewState.tag === null, () => selectTag(null, chipWrap, renderFiltered));
   allChip.dataset.all = 'true';
   chipWrap.appendChild(allChip);
   tags.forEach(tag => {
-    const chip = makeChip(tag, overviewState.tag === tag, () => selectTag(tag, chipWrap));
+    const chip = makeChip(tag, overviewState.tag === tag, () => selectTag(tag, chipWrap, renderFiltered));
     chip.dataset.tagValue = tag;
     chipWrap.appendChild(chip);
   });
 }
 
-function selectTag(tag, chipWrap) {
+function selectTag(tag, chipWrap, renderFiltered) {
   overviewState.tag = tag;
   chipWrap.querySelectorAll('.chip').forEach(chip => {
     chip.classList.toggle('active', chip.dataset.all === 'true'
       ? tag === null
       : chip.dataset.tagValue === tag);
   });
-  renderGrid();
+  renderFiltered();
 }
 
 function setupIngredientFilterButton() {
@@ -134,16 +148,17 @@ function setupIngredientFilterButton() {
   filterBtn.addEventListener('click', () => openIngredientFilter(renderOverview));
 }
 
-async function renderGrid() {
-  const all = await getAllRecipes();
-  const filtered = filterRecipes(sortRecipes(all, overviewState.sort), overviewState);
+function renderGrid(sortedRecipes, totalRecipes, seq) {
+  if (isStale(seq)) return;
+  const filtered = filterRecipes(sortedRecipes, overviewState);
 
   const grid = document.getElementById('grid');
   const emptyState = document.getElementById('empty-state');
-  grid.innerHTML = '';
+  const cards = document.createDocumentFragment();
 
-  if (all.length === 0 || filtered.length === 0) {
-    emptyState.querySelector('.empty-message').textContent = all.length === 0
+  if (totalRecipes === 0 || filtered.length === 0) {
+    grid.replaceChildren();
+    emptyState.querySelector('.empty-message').textContent = totalRecipes === 0
       ? 'Noch keine Rezepte. Tippe oben rechts auf „+“, um eines hinzuzufügen.'
       : 'Keine Rezepte mit den ausgewählten Filtern gefunden.';
     emptyState.hidden = false;
@@ -151,7 +166,8 @@ async function renderGrid() {
   }
   emptyState.hidden = true;
 
-  filtered.forEach(recipe => grid.appendChild(createTile(recipe)));
+  filtered.forEach(recipe => cards.appendChild(createTile(recipe)));
+  grid.replaceChildren(cards);
 }
 
 function createTile(recipe) {

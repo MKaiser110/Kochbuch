@@ -69,3 +69,10 @@ Da iOS die Viewport-Sperre weiterhin ignorierte, blockiert die App jetzt zusätz
 - Quellen-URLs sind in der Rezeptansicht anklickbar. Die Löschbestätigung nutzt jetzt ein App-eigenes Fenster.
 - README an die bestehende Veröffentlichung über GitHub Pages angepasst.
 - Nach diesen Änderungen wurden keine Tests ausgeführt.
+
+## UX-Verbesserungen (2026-10-31)
+
+- URL-Importfehler unterscheiden jetzt erkannte Zugriffssperren von nicht erkannten Rezeptdaten und zeigen passend dazu den manuellen Einfügeweg.
+- Die Rezeptübersicht lädt Rezepte einmal pro Ansicht; Such- und Tagfilter sortieren nicht erneut. Suche wird bis zum nächsten Animationsframe gebündelt, Karten werden gemeinsam eingesetzt.
+- Keine Laufzeittests wurden ausgeführt.
+
