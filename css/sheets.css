@@ -61,10 +61,10 @@
 .menu-sheet .sheet-cancel { flex: 0 0 44px; margin-top: auto; }
 .confirm-message { margin: 4px 0 22px; line-height: 1.5; overflow-wrap: anywhere; }
 .confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; }
-.confirm-actions button { min-height: 46px; border-radius: 12px; font: inherit; cursor: pointer; }
-.confirm-actions .btn-danger { border: 0; background: var(--danger); color: #fff; font-size: .88rem; font-weight: 600; }
+.confirm-actions button { min-height: 48px; border-radius: 12px; font: inherit; cursor: pointer; }
+.confirm-actions .btn-danger { border: 0; background: var(--danger-strong); color: #fff; font-size: var(--text-sm); font-weight: 600; }
 .confirm-actions .btn-danger:disabled { opacity: .65; }
-.sheet h2 { margin: 0 0 10px; font-size: 1.2rem; font-weight: 650; letter-spacing: -.025em; }
+.sheet h2 { margin: 0 0 10px; font-size: var(--text-lg); font-weight: 650; letter-spacing: -.025em; }
 .sheet-option {
   display: flex;
   align-items: center;
@@ -77,7 +77,7 @@
   border-radius: 13px;
   background: var(--surface-soft);
   color: var(--ink);
-  font-size: .92rem;
+  font-size: var(--text-body);
   text-align: left;
   cursor: pointer;
   transition: transform 150ms ease, border-color 150ms ease;
@@ -85,4 +85,4 @@
 .option-icon { width: 20px; height: 20px; flex: 0 0 auto; stroke: var(--ink-soft); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
 .sheet-option span { flex: 1; }
 .sheet-option:hover { border-color: var(--line-strong); }
-.sheet-cancel { display: block; width: 100%; min-height: 44px; border: 0; background: transparent; color: var(--ink-soft); font-size: .9rem; cursor: pointer; }
+.sheet-cancel { display: block; width: 100%; min-height: 44px; border: 0; background: transparent; color: var(--ink-soft); font-size: var(--text-sm); cursor: pointer; }

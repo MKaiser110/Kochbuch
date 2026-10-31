@@ -50,8 +50,8 @@
 .topbar-actions .icon-btn { display: grid; }
 .icon-btn {
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
   place-items: center;
   border: 0;
@@ -64,7 +64,7 @@
   transition: background 150ms ease, transform 150ms ease;
 }
 #btn-data-menu { color: var(--ink-soft); }
-#btn-add { width: 42px; height: 42px; background: var(--ink); color: var(--surface); box-shadow: 0 3px 8px rgb(0 0 0 / 12%); }
+#btn-add { width: 48px; height: 48px; background: var(--ink); color: var(--surface); box-shadow: 0 3px 8px rgb(0 0 0 / 12%); }
 .icon-btn svg { width: 21px; height: 21px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 #btn-data-menu svg { width: 20px; height: 20px; fill: currentColor; stroke: none; }
 #btn-add svg { width: 20px; height: 20px; stroke-width: 1.8; }

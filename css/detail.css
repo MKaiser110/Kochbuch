@@ -3,7 +3,7 @@
 .detail { width: min(100%, 700px); margin: 0 auto; }
 .detail-img { width: 100%; aspect-ratio: 16 / 9; margin-bottom: 22px; border-radius: 18px; background: var(--surface-soft) center / cover no-repeat; }
 .d-title { margin: 0 0 7px; font-size: clamp(1.45rem, 5vw, 2rem); font-weight: 650; letter-spacing: -.035em; line-height: 1.2; }
-.d-meta { margin: 0 0 22px; color: var(--ink-soft); font-size: .88rem; }
+.d-meta { margin: 0 0 22px; color: var(--ink-soft); font-size: var(--text-sm); }
 .d-extra p { margin: 0 0 8px; line-height: 1.5; }
 .d-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin: -8px 0 20px; }
 .d-extra p { flex: 1 0 100%; }
@@ -17,7 +17,7 @@
   border-radius: 12px;
   background: var(--surface-soft);
   color: var(--ink);
-  font-size: .86rem;
+  font-size: var(--text-sm);
   font-weight: 550;
   text-decoration: none;
   transition: background 150ms ease, border-color 150ms ease;
@@ -25,13 +25,13 @@
 .btn-source:hover { border-color: var(--line-strong); background: var(--surface); }
 .btn-source svg { width: 17px; height: 17px; flex: 0 0 auto; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 
-.servings-control { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; color: var(--ink-soft); font-size: .9rem; }
-.wake-lock-toggle { display: flex; align-items: center; gap: 9px; margin-bottom: 20px; color: var(--ink-soft); font-size: .83rem; }
+.servings-control { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; color: var(--ink-soft); font-size: var(--text-sm); }
+.wake-lock-toggle { display: flex; align-items: center; gap: 9px; min-height: 44px; margin-bottom: 20px; padding-block: 8px; color: var(--ink-soft); font-size: var(--text-sm); }
 .wake-lock-toggle input, .ingredient-checklist input { width: 18px; height: 18px; accent-color: var(--ink); }
 .serv-btn {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 50%;
@@ -49,7 +49,7 @@
   border-radius: 13px;
   background: var(--ink);
   color: var(--surface);
-  font-size: .95rem;
+  font-size: var(--text-body);
   font-weight: 550;
   cursor: pointer;
   transition: opacity 150ms ease, transform 150ms ease;
@@ -62,7 +62,7 @@
 .detail h3, .form h3 {
   margin: 0 0 12px;
   color: var(--ink-soft);
-  font-size: .74rem;
+  font-size: var(--text-xs);
   font-weight: 650;
   letter-spacing: .09em;
   text-transform: uppercase;
@@ -83,7 +83,7 @@
   border-radius: 12px;
   background: var(--surface);
   color: var(--ink);
-  font-size: .85rem;
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 .btn-delete { color: var(--danger); }
@@ -100,12 +100,12 @@
   border-radius: 12px;
   background: var(--surface-soft);
   color: var(--ink-soft);
-  font-size: .82rem;
+  font-size: var(--text-sm);
 }
 .star-rating { display: flex; gap: 4px; }
 .star {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border: 0;
   background: transparent;
   color: var(--line-strong);
@@ -115,7 +115,7 @@
 }
 .star.active { color: #f4b740; }
 .notes-block { display: block; margin-top: 20px; }
-.notes-block span { display: block; margin-bottom: 8px; color: var(--ink-soft); font-size: .82rem; }
+.notes-block span { display: block; margin-bottom: 8px; color: var(--ink-soft); font-size: var(--text-sm); }
 .recipe-notes {
   width: 100%;
   min-height: 90px;

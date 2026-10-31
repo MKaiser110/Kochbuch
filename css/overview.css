@@ -25,8 +25,8 @@
 .tile:hover { transform: translateY(-2px); border-color: var(--line-strong); box-shadow: 0 8px 24px rgb(0 0 0 / 6%); }
 .tile-img { aspect-ratio: 4 / 3; background: var(--surface-soft) center / cover no-repeat; }
 .tile-body { padding: 12px 13px 15px; }
-.tile-cat { color: var(--ink-soft); font-size: .7rem; letter-spacing: .045em; text-transform: uppercase; }
-.tile-title { margin: 5px 0 0; font-size: .96rem; font-weight: 600; line-height: 1.35; }
+.tile-cat { color: var(--ink-soft); font-size: var(--text-xs); letter-spacing: .045em; text-transform: uppercase; }
+.tile-title { margin: 5px 0 0; font-size: var(--text-body); font-weight: 600; line-height: 1.35; }
 
 .empty {
   display: flex;
@@ -40,6 +40,6 @@
   text-align: center;
 }
 .empty-icon { width: 58px; height: 58px; margin-bottom: 20px; color: #d4d6d8; }
-.empty-message { max-width: 360px; margin: 0; font-size: .93rem; line-height: 1.7; }
-.empty-filter-summary { max-width: 420px; margin: 12px 0 0; font-size: .82rem; line-height: 1.5; overflow-wrap: anywhere; }
+.empty-message { max-width: 360px; margin: 0; font-size: var(--text-body); line-height: 1.7; }
+.empty-filter-summary { max-width: 420px; margin: 12px 0 0; font-size: var(--text-sm); line-height: 1.5; overflow-wrap: anywhere; }
 .empty-reset { margin-top: 16px; }

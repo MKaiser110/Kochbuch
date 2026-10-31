@@ -5,7 +5,7 @@
   .topbar { top: 0; min-height: 70px; padding-inline: 16px; border-radius: 23px 23px 0 0; }
   #app { min-height: calc(100dvh - 80px); padding: 8px 16px 26px; border-radius: 0 0 23px 23px; }
   .controls-row { gap: 5px; }
-  .ingredient-filter-btn { padding-inline: 10px; font-size: .76rem; }
+  .ingredient-filter-btn { padding-inline: 10px; font-size: var(--text-sm); }
   .sort-trigger { max-width: 165px; }
   .overlay { padding: 16px 5px 5px; }
   .sheet, .form { padding-inline: 18px; border-radius: 22px; }

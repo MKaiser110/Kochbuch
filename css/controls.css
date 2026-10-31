@@ -7,7 +7,6 @@
   padding: 0 16px 0 42px;
   border: 1px solid transparent;
   border-radius: 14px;
-  outline: none;
   background-color: var(--surface-soft);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2385898d' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='10.8' cy='10.8' r='6.8'/%3E%3Cpath d='m16 16 4.5 4.5'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -16,7 +15,7 @@
   font-size: 16px;
   transition: border-color 150ms ease, background-color 150ms ease;
 }
-#search::placeholder, #ingredient-filter-search::placeholder { color: #a0a4a8; }
+#search::placeholder, #ingredient-filter-search::placeholder { color: var(--ink-soft); opacity: 1; }
 #search:focus, #ingredient-filter-search:focus { border-color: var(--line-strong); background-color: var(--surface); }
 
 .chips {
@@ -33,14 +32,14 @@
 }
 .chips::-webkit-scrollbar { display: none; }
 .chip {
-  min-height: 34px;
+  min-height: 40px;
   flex: 0 0 auto;
   padding: 7px 15px;
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
   color: var(--ink-soft);
-  font-size: .82rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   transition: color 150ms ease, background 150ms ease;
@@ -59,7 +58,7 @@
 .sort-trigger {
   display: flex;
   max-width: 190px;
-  min-height: 38px;
+  min-height: 44px;
   align-items: center;
   justify-content: flex-end;
   gap: 7px;
@@ -68,13 +67,13 @@
   border-radius: 10px;
   background: transparent;
   color: var(--ink-soft);
-  font-size: .78rem;
+  font-size: var(--text-sm);
   cursor: pointer;
 }
 .sort-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sort-trigger svg { width: 14px; height: 14px; flex: 0 0 auto; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; transition: transform 150ms ease; }
 .sort-trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
-.sort-trigger:focus-visible { outline: 2px solid var(--line-strong); }
+.sort-trigger:focus-visible { outline: 2px solid var(--focus); }
 .sort-menu {
   position: absolute;
   z-index: 8;
@@ -92,28 +91,29 @@
 }
 .sort-menu[hidden] { display: none; }
 .sort-option {
-  min-height: 38px;
+  min-height: 44px;
   padding: 8px 11px;
   border: 0;
   border-radius: 9px;
   background: transparent;
   color: var(--ink);
-  font-size: .82rem;
+  font-size: var(--text-sm);
   text-align: left;
   white-space: nowrap;
   cursor: pointer;
 }
-.sort-option:hover, .sort-option:focus-visible { outline: none; background: var(--surface-soft); }
+.sort-option:hover { background: var(--surface-soft); }
+.sort-option:focus-visible { outline: 2px solid var(--focus); outline-offset: 0; background: var(--surface-soft); }
 .sort-option.selected { background: var(--ink); color: var(--surface); }
 
 .btn-secondary {
-  min-height: 38px;
+  min-height: 44px;
   padding: 8px 13px;
   border: 1px solid transparent;
   border-radius: 11px;
   background: var(--surface-soft);
   color: var(--ink);
-  font-size: .8rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   cursor: pointer;
   transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;

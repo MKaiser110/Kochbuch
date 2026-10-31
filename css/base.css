@@ -6,10 +6,16 @@
   --surface: #ffffff;
   --surface-soft: #f5f6f6;
   --ink: #202122;
-  --ink-soft: #85898d;
+  --ink-soft: #686e73;
   --line: #eceeef;
   --line-strong: #dfe2e4;
   --danger: #b54747;
+  --danger-strong: #b54747;
+  --focus: #42627f;
+  --text-xs: .75rem;
+  --text-sm: .875rem;
+  --text-body: 1rem;
+  --text-lg: 1.25rem;
   font-size: 15px;
 }
 
@@ -19,7 +25,9 @@
     --surface: #1b1c1e;
     --surface-soft: #25272a;
     --ink: #f2f3f4;
-    --ink-soft: #a2a6aa;
+    --ink-soft: #b6bbc0;
+    --danger-strong: #9b4a4a;
+    --focus: #9fc2e3;
     --line: #2c2e31;
     --line-strong: #3a3d40;
       --danger: #ef8585;
@@ -28,6 +36,7 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 html, body { touch-action: pan-x pan-y; }
 button, input, select, textarea { color: inherit; font: inherit; }
 body input, body textarea, body select { font-size: 16px; }

@@ -1,6 +1,6 @@
 /* form.css — Formularfelder, Zutaten-/Schrittzeilen, Sheet-Inhalte (Status, Checkliste, Vorschau). */
 
-.form label { display: block; margin-bottom: 16px; color: var(--ink-soft); font-size: .8rem; font-weight: 550; }
+.form label { display: block; margin-bottom: 16px; color: var(--ink-soft); font-size: var(--text-sm); font-weight: 550; }
 .form input:not([type="file"]), .form textarea {
   display: block;
   width: 100%;
@@ -9,7 +9,6 @@
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 11px;
-  outline: none;
   background-color: var(--surface-soft);
   color: var(--ink);
   font-size: 16px;
@@ -64,14 +63,14 @@
 .ing-row input:nth-child(2) { flex: 0 0 78px; }
 .ing-row input:nth-child(3) { flex: 1; }
 .step-row textarea { flex: 1; min-width: 0; overflow-y: hidden; resize: none; }
-.row-remove { width: 32px; height: 36px; flex: 0 0 auto; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font-size: 1.3rem; cursor: pointer; }
+.row-remove { width: 40px; height: 40px; flex: 0 0 auto; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font-size: 1.3rem; cursor: pointer; }
 .row-remove:hover { background: var(--surface-soft); }
 .form-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 22px; }
-.status { min-height: 1.2em; color: var(--ink-soft); font-size: .82rem; line-height: 1.5; }
+.status { min-height: 1.2em; color: var(--ink-soft); font-size: var(--text-sm); line-height: 1.5; }
 .ingredient-checklist { max-height: 48vh; overflow-y: auto; margin: 14px 0; padding: 4px 15px; border: 1px solid var(--line); border-radius: 14px; }
-.ingredient-checklist label { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 1px solid var(--line); color: var(--ink); font-size: .9rem; }
+.ingredient-checklist label { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 1px solid var(--line); color: var(--ink); font-size: var(--text-sm); }
 .ingredient-checklist label:last-child { border-bottom: 0; }
-.hint { color: var(--ink-soft); font-size: .8rem; line-height: 1.55; }
+.hint { color: var(--ink-soft); font-size: var(--text-sm); line-height: 1.55; }
 #scan-preview img, #image-preview img { max-width: 100%; margin-top: 10px; border-radius: 14px; }
 #image-preview img { margin-top: 2px; }
 .tag-suggestions { flex-wrap: wrap; overflow: visible; margin: -5px 0 16px; padding-top: 0; }
