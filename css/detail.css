@@ -4,6 +4,8 @@
 .detail-img { width: 100%; aspect-ratio: 16 / 9; margin-bottom: 22px; border-radius: 18px; background: var(--surface-soft) center / cover no-repeat; }
 .d-title { margin: 0 0 7px; font-size: clamp(1.45rem, 5vw, 2rem); font-weight: 650; letter-spacing: -.035em; line-height: 1.2; }
 .d-meta { margin: 0 0 22px; color: var(--ink-soft); font-size: .88rem; }
+.d-extra p { margin: 0 0 8px; line-height: 1.5; }
+.d-extra a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
 .servings-control { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; color: var(--ink-soft); font-size: .9rem; }
 .wake-lock-toggle { display: flex; align-items: center; gap: 9px; margin-bottom: 20px; color: var(--ink-soft); font-size: .83rem; }
 .wake-lock-toggle input, .ingredient-checklist input { width: 18px; height: 18px; accent-color: var(--ink); }

@@ -37,6 +37,33 @@
 .overlay .sheet, .overlay .form {
   max-height: var(--overlay-content-max-height, min(88dvh, 820px));
 }
+.menu-sheet {
+  height: min(360px, var(--overlay-content-max-height, min(88dvh, 820px)));
+  display: flex;
+  flex-direction: column;
+}
+.menu-sheet h2 { min-height: 24px; flex: 0 0 auto; }
+.menu-sheet .sheet-option {
+  height: 56px;
+  min-height: 56px;
+  flex: 0 0 56px;
+  margin-bottom: 8px;
+  padding-block: 9px;
+  line-height: 1.2;
+}
+.sheet-status-slot {
+  display: flex;
+  min-height: 28px;
+  flex: 0 0 28px;
+  align-items: center;
+  margin: 0;
+}
+.menu-sheet .sheet-cancel { flex: 0 0 44px; margin-top: auto; }
+.confirm-message { margin: 4px 0 22px; line-height: 1.5; overflow-wrap: anywhere; }
+.confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; }
+.confirm-actions button { min-height: 46px; border-radius: 12px; font: inherit; cursor: pointer; }
+.confirm-actions .btn-danger { border: 0; background: var(--danger); color: #fff; font-size: .88rem; font-weight: 600; }
+.confirm-actions .btn-danger:disabled { opacity: .65; }
 .sheet h2 { margin: 0 0 10px; font-size: 1.2rem; font-weight: 650; letter-spacing: -.025em; }
 .sheet-option {
   display: flex;

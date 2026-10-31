@@ -186,7 +186,7 @@
 </template>
 
 <template id="tpl-data-menu">
-  <div class="sheet">
+  <div class="sheet menu-sheet">
     <h2>Rezepte sichern</h2>
     <button id="data-export" class="sheet-option">
       <svg class="option-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"></path></svg>
@@ -202,13 +202,13 @@
     </button>
     <input id="data-import-file" type="file" accept="application/json,.json" hidden>
     <input id="data-import-single-file" type="file" accept="application/json,.json" hidden>
-    <p id="data-status" class="status"></p>
+    <p id="data-status" class="status sheet-status-slot"></p>
     <button id="data-cancel" class="sheet-cancel">Schließen</button>
   </div>
 </template>
 
 <template id="tpl-add-menu">
-  <div class="sheet">
+  <div class="sheet menu-sheet">
     <h2>Rezept hinzufügen</h2>
     <button id="add-via-url" class="sheet-option">
       <svg class="option-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -225,7 +225,19 @@
       <svg class="option-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m14 5 5 5M4 20l4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11L4 20Z"></path></svg>
       <span>Manuell eingeben</span>
     </button>
+    <p class="sheet-status-slot" aria-hidden="true"></p>
     <button id="add-cancel" class="sheet-cancel">Abbrechen</button>
+  </div>
+</template>
+
+<template id="tpl-delete-confirm">
+  <div class="sheet confirm-sheet">
+    <h2>Rezept löschen?</h2>
+    <p id="delete-confirm-message" class="confirm-message"></p>
+    <div class="confirm-actions">
+      <button id="delete-cancel" class="btn-secondary" type="button">Abbrechen</button>
+      <button id="delete-confirm" class="btn-danger" type="button">Rezept löschen</button>
+    </div>
   </div>
 </template>
 

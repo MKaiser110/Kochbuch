@@ -6,6 +6,7 @@ import { scaleIngredients } from '../services/scaling.js';
 import { exportRecipeToFile } from '../services/export-import.js';
 import { preparePdfAssets, exportRecipePdf } from '../services/pdf-export.js';
 import { enableWakeLock, disableWakeLock, isSupported as wakeLockSupported } from '../services/wake-lock.js';
+import { openSheet, closeSheet } from '../sheets/sheet.js';
 import { appRoot, mountTemplate, setPageTitle, fillIngredientList } from '../utils/dom.js';
 import { currentNavigation, isStale } from '../view-lifecycle.js';
 
@@ -51,7 +52,25 @@ function renderHeader(root, recipe) {
     p.append(strong, document.createTextNode(value));
     extra.appendChild(p);
   }
-  extra.hidden = !facts.length;
+  if (recipe.source) {
+    try {
+      const sourceUrl = new URL(recipe.source, location.href);
+      if (sourceUrl.protocol === 'http:' || sourceUrl.protocol === 'https:') {
+        const p = document.createElement('p');
+        const strong = document.createElement('strong');
+        const link = document.createElement('a');
+        strong.textContent = 'Quelle: ';
+        link.href = sourceUrl.href;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = recipe.source;
+        p.className = 'd-source';
+        p.append(strong, link);
+        extra.appendChild(p);
+      }
+    } catch { /* Ungültige Quellenangaben werden nicht als Link angezeigt. */ }
+  }
+  extra.hidden = !extra.childElementCount;
 }
 
 function setupFavorite(root, recipe) {
@@ -191,10 +210,16 @@ function setupWakeLockToggle(root) {
 
 function setupEditAndDelete(root, id, recipe) {
   root.querySelector('.btn-edit').addEventListener('click', () => { location.hash = `edit/${id}`; });
-  root.querySelector('.btn-delete').addEventListener('click', async () => {
-    if (confirm(`„${recipe.title}“ wirklich löschen?`)) {
-      await deleteRecipe(id);
-      location.hash = '';
-    }
+  root.querySelector('.btn-delete').addEventListener('click', () => {
+    openSheet('tpl-delete-confirm', node => {
+      node.querySelector('#delete-confirm-message').textContent = `„${recipe.title}“ wirklich löschen?`;
+      node.querySelector('#delete-cancel').addEventListener('click', closeSheet);
+      node.querySelector('#delete-confirm').addEventListener('click', async event => {
+        event.currentTarget.disabled = true;
+        await deleteRecipe(id);
+        closeSheet();
+        location.hash = '';
+      });
+    });
   });
 }

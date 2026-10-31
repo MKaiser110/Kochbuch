@@ -61,3 +61,11 @@ Beim Öffnen des Erstellen-/Bearbeitenformulars wird die Seite an den Anfang zur
 ## iOS-Zoomsperre nachgebessert (31.10.2026)
 
 Da iOS die Viewport-Sperre weiterhin ignorierte, blockiert die App jetzt zusätzlich Mehrfinger-Zoom-Gesten sowie schnelle Doppeltipps per nicht-passiven Touch- und Gesture-Listenern. Service-Worker-Cache auf `v39` erhöht. Die Geste wurde hier nicht auf einem echten iPhone verifiziert.
+
+## Weitere Oberflächenkorrekturen (31.10.2026)
+
+- Routenwechsel setzen die vertikale Scrollposition zurück; Tagfilter aktualisieren die Übersicht ohne Neuaufbau der horizontalen Tag-Leiste.
+- Hinzufügen- und Sichern-Dialoge verwenden dieselbe Höhe und feste Positionen für Optionen und Schließen.
+- Quellen-URLs sind in der Rezeptansicht anklickbar. Die Löschbestätigung nutzt jetzt ein App-eigenes Fenster.
+- README an die bestehende Veröffentlichung über GitHub Pages angepasst.
+- Nach diesen Änderungen wurden keine Tests ausgeführt.

@@ -1,117 +1,45 @@
-# Kochbuch — PWA
+# Kochbuch
 
-## Installation auf dem iPhone
-Service Worker und „Zum Home-Bildschirm hinzufügen“ funktionieren auf iOS nur
-über **HTTPS** (oder `localhost`), nicht über eine lokale Datei. Die App muss
-also irgendwo statisch gehostet werden — kein eigener Server nötig, reicht
-z.B.:
+Eine schlanke, offlinefähige Rezept-Web-App als installierbare PWA. Es gibt keinen Build-Schritt und keinen eigenen Server für den Betrieb.
 
-1. **GitHub Pages** (kostenlos): Repo erstellen, diesen Ordnerinhalt pushen,
-   in den Repo-Settings „Pages“ auf den Branch zeigen lassen.
-2. **Netlify Drop** (schnellster Weg): auf https://app.netlify.com/drop den
-   Ordner per Drag&Drop hochladen — sofort eine HTTPS-URL.
-3. **Vercel**, **Cloudflare Pages**: gleiches Prinzip.
+## Veröffentlichung über GitHub Pages
 
-Danach auf dem iPhone die URL in Safari öffnen → Teilen-Symbol →
-„Zum Home-Bildschirm“. Ab dann startet die App wie eine native App
-(eigenes Icon, kein Browser-UI, Service Worker cached die App-Shell für
-Offline-Start).
+1. Lege den Inhalt dieses Projektordners im Stammverzeichnis des GitHub-Repositorys ab und pushe die Änderungen.
+2. Öffne im Repository **Settings → Pages**.
+3. Wähle unter **Build and deployment** die Option **Deploy from a branch**, danach den gewünschten Branch und **/(root)**.
+4. Öffne die angezeigte GitHub-Pages-Adresse. GitHub stellt die Seite über HTTPS bereit.
 
-### Lokal testen (Desktop)
-```
-cd kochbuch
-python3 -m http.server 8000
-```
-Dann `http://localhost:8000` öffnen. Service Worker funktioniert unter
-`localhost` auch ohne HTTPS.
+Die App verwendet relative Pfade und funktioniert daher auch unter einer Repository-Unteradresse wie `https://name.github.io/kochbuch/`. Es gibt keinen Build- oder Installationsschritt.
 
-## Architektur
-- **Kein Build-Schritt**: reines HTML/CSS/JS mit ES-Modulen, direkt statisch
-  hostbar. `index.html`, `sw.js` und `manifest.json` liegen im Root
-  (Service-Worker-Scope).
-- **Ordnerstruktur** (`js/`):
-  - `app.js` – Einstiegspunkt (Router starten, Header-Buttons, Service Worker).
-  - `router.js` – Hash-Router; `view-lifecycle.js` – Navigationszähler und
-    Aufräumfunktion der aktuellen Ansicht; `state.js` – Filter-/Sortierzustand
-    der Übersicht und Import-Entwurf für das Formular.
-  - `core/` – Daten: `db.js` (IndexedDB), `recipe-model.js` (Grundgerüst,
-    Normalisierung, Migration, Duplikaterkennung), `recipe-query.js`
-    (Sortieren/Filtern), `sync-adapter.js`.
-  - `views/` – Seiten: `overview.js`, `detail.js`, `cook-mode.js`,
-    `recipe-form.js`.
-  - `sheets/` – Bottom-Sheets: `sheet.js` (Öffnen/Schließen), `add-menu.js`,
-    `data-menu.js`, `url-import.js`, `scan-import.js`, `ingredient-filter.js`.
-  - `services/` – Funktionen ohne eigene Ansicht: `recipe-import/`,
-    `ocr-import.js`, `export-import.js`, `pdf-export.js`, `image-utils.js`,
-    `scaling.js`, `wake-lock.js`.
-  - `utils/` – gemeinsame Helfer: `dom.js`, `files.js`.
-  - `vendor/` – jsPDF (lokal, offline nutzbar).
-- **`css/`**: nach Komponenten aufgeteilt (`base`, `shell`, `controls`,
-  `overview`, `detail`, `sheets`, `form`, `cook`, `responsive`). Die Ladereihenfolge
-  in `index.html` ist Teil der Kaskade; `responsive.css` muss zuletzt kommen.
-- **`js/core/db.js`**: einziger Zugriffspunkt auf IndexedDB. Jeder Schreibzugriff
-  läuft zusätzlich durch `js/core/sync-adapter.js`.
-- **`js/core/sync-adapter.js`**: aktuell ein No-Op („local-only“). Für iCloud-Sync
-  später eine Klasse mit derselben Schnittstelle (`push`, `delete`, `pull`,
-  `onRemoteChange`) implementieren und per `setSyncAdapter()` aktivieren —
-  UI und `db.js` müssen dafür nicht angefasst werden.
-- **`js/services/recipe-import/`**: liest `schema.org/Recipe`-JSON-LD
-  (`json-ld.js`) bzw. Microdata (`microdata.js`), die die meisten Rezeptseiten
-  einbetten, und verwirft unvollständige Treffer (`validation.js`). Direkter
-  `fetch()` scheitert bei vielen Seiten an CORS (browserseitig ohne eigenen
-  Server nicht lösbar); der Reader-Fallback (`reader-extract.js`) übernimmt nur
-  Inhalte aus erkannten Zutaten- und Zubereitungsabschnitten. Andere Abschnitte
-  wie Hinweise, Nährwerte und Werbung werden dabei verworfen; erkannte Rezepte
-  können vor dem Speichern geprüft und angepasst werden.
-- **`js/services/ocr-import.js`**: Tesseract.js für Texterkennung aus Fotos. Bilder
-  werden für bessere Lesbarkeit skaliert und kontrastverstärkt; erkannt wird
-  mit dem genaueren deutschen Sprachmodell. Tesseract.js und das Sprachmodell
-  werden beim ersten OCR-Aufruf aus dem CDN geladen. Das Ergebnis bleibt ein
-  Entwurf und sollte vor dem Speichern im Formular geprüft werden.
-- **`js/services/scaling.js`**: skaliert Mengen linear zur Portionenzahl, rundet auf
-  küchentaugliche Werte.
-- **Datei-Export und -Import**: Das gesamte Kochbuch kann als JSON-Datei
-  exportiert und wieder importiert werden. Einzelne Rezepte lassen sich auf
-  ihrer Detailseite ebenfalls als JSON-Datei exportieren und über
-  „Einzelnes Rezept aus Datei importieren“ einlesen.
+## Auf dem iPhone installieren
 
-## Getroffene Annahmen
-- Einheitensystem: metrisch.
-- Kategorien: frei vom Nutzer vergeben (Textfeld mit Autocomplete aus
-  bisherigen Kategorien), keine feste Vorgabeliste.
-- OCR-Sprache: Deutsch (`deu`-Traineddata von Tesseract.js).
-- Rezeptbilder werden als Base64-DataURL in IndexedDB gespeichert (einfach,
-  kein zusätzlicher Blob-Store nötig; für sehr viele/große Bilder wäre ein
-  eigener Object Store mit Blobs die skalierbarere Variante).
+Öffne die veröffentlichte HTTPS-Adresse in Safari, tippe auf **Teilen** und wähle **Zum Home-Bildschirm**. Starte die Web-App danach über das neue Symbol. Nach Änderungen an der App die Web-App einmal schließen und erneut öffnen, damit der aktualisierte Offline-Cache geladen wird.
 
-## Weitere Module
-- **Tags**: Rezepte haben mehrere Tags (`recipe.tags`). Ältere Rezepte mit der
-  früheren Einzel-Kategorie werden beim Lesen/Import automatisch migriert.
-- **Duplikat-Warnung** (`findDuplicate` in `js/core/recipe-model.js`): gleicher Titel oder
-  gleiche Quell-URL; greift beim Speichern im Formular (auch nach URL-/Scan-
-  Import) und beim Datei-Import.
-- **PDF-Export** (`js/services/pdf-export.js`): jsPDF liegt lokal in `js/vendor/`
-  (offline nutzbar). Mobil über das Share-Sheet, am Desktop als Download.
-  Exportiert wird mit der auf der Detailseite gewählten Portionenzahl.
-- **Kochmodus** (Route `#cook/<id>?s=<portionen>`): ein Schritt pro Seite,
-  Wischen/Pfeiltasten, Bildschirm bleibt wach, Zutatenliste jederzeit abrufbar.
+## Daten und Import
 
+- Rezepte liegen lokal im Browser in IndexedDB. Sie werden nicht automatisch zwischen Geräten synchronisiert.
+- **Rezepte sichern** exportiert das Kochbuch als JSON-Datei. Bewahre diese Datei als Backup auf und importiere sie bei Bedarf wieder.
+- Der URL-Import liest strukturierte Rezeptdaten oder nutzt einen Text-Reader als bestmöglichen Fallback. CORS, Website-Schutz und Änderungen an Rezeptseiten können den Import verhindern oder eine manuelle Prüfung nötig machen.
+- Beim URL- und Bildimport wird nur die Gesamtzeit in das Feld **Zubereitungszeit** übernommen. Andere Zusatzangaben wie Beschreibung, Küche, Schwierigkeit und Nährwerte werden nicht gespeichert.
+- Beim Bildimport erfolgt die Texterkennung im Browser mit Tesseract.js. Der erkannte Entwurf sollte vor dem Speichern geprüft werden.
 
-## Verbesserungen am Rezeptimport
+## Lokal starten
 
-- URL-Import mit Zeitlimit, Größenlimit, explizitem HTTP(S)-Schema und Ablehnung lokaler/private Hostnamen.
-- Direkter Abruf vor Drittanbieter-Proxys; Zugangsdaten werden nicht an Fetch-Anfragen übergeben.
-- Robustere Mengen-/Einheiten-Erkennung (Dezimalzahlen, Brüche und gemischte Brüche).
-- Verbesserte Schema.org-Verarbeitung für verschachtelte `@type`-Werte, strukturierte Zutaten, Anleitungen und relative Bild-URLs.
-- Zusätzliche Plausibilitätsprüfungen gegen Navigations- und Werbetexte.
-- Aktualisierte Service-Worker-Cache-Version.
-
-### Tests
-
-Mit Node.js 20 oder neuer ausführen:
+Mit Python:
 
 ```sh
-npm test
+python -m http.server 8000
 ```
 
-Hinweis: Der URL-Import kann weiterhin an CORS-Regeln, Website-Schutzmechanismen oder der Verfügbarkeit externer Reader-/Proxy-Dienste scheitern. Ein dauerhaft zuverlässiger Import beliebiger Websites benötigt einen eigenen Server-/Worker-Proxy.
+Öffne anschließend `http://localhost:8000`. `localhost` unterstützt den Service Worker auch ohne HTTPS.
+
+## Entwicklung
+
+- Oberfläche und Logik: `index.html`, `css/` und `js/` (ES-Module, ohne Framework)
+- Navigation: `js/router.js`
+- Lokale Speicherung und Modell: `js/core/`
+- Ansichten und Formular: `js/views/`
+- Import-, Export- und PDF-Funktionen: `js/services/`
+- Offline-Cache: `sw.js`
+
+Mit Node.js kannst du die automatisierten Tests über `npm test` starten.

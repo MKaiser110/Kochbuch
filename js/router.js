@@ -37,6 +37,7 @@ function goBack() {
 
 function route() {
   const hash = location.hash.slice(1);
+  window.scrollTo(0, 0);
   closeSheet();
   startNavigation();
   // Im Kochmodus Header-Aktionen ausblenden (kein versehentliches Tippen beim Kochen)

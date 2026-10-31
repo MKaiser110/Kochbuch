@@ -105,16 +105,24 @@ function renderTagChips(tags) {
   if (overviewState.tag && !tags.includes(overviewState.tag)) overviewState.tag = null;
   const chipWrap = document.getElementById('tag-filter');
   chipWrap.innerHTML = '';
-  chipWrap.appendChild(makeChip('Alle', overviewState.tag === null, () => {
-    overviewState.tag = null;
-    renderOverview();
-  }));
+  const allChip = makeChip('Alle', overviewState.tag === null, () => selectTag(null, chipWrap));
+  allChip.dataset.all = 'true';
+  chipWrap.appendChild(allChip);
   tags.forEach(tag => {
-    chipWrap.appendChild(makeChip(tag, overviewState.tag === tag, () => {
-      overviewState.tag = tag;
-      renderOverview();
-    }));
+    const chip = makeChip(tag, overviewState.tag === tag, () => selectTag(tag, chipWrap));
+    chip.dataset.tagValue = tag;
+    chipWrap.appendChild(chip);
   });
+}
+
+function selectTag(tag, chipWrap) {
+  overviewState.tag = tag;
+  chipWrap.querySelectorAll('.chip').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.all === 'true'
+      ? tag === null
+      : chip.dataset.tagValue === tag);
+  });
+  renderGrid();
 }
 
 function setupIngredientFilterButton() {
