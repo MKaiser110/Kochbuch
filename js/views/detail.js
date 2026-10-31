@@ -56,17 +56,14 @@ function renderHeader(root, recipe) {
     try {
       const sourceUrl = new URL(recipe.source, location.href);
       if (sourceUrl.protocol === 'http:' || sourceUrl.protocol === 'https:') {
-        const p = document.createElement('p');
-        const strong = document.createElement('strong');
         const link = document.createElement('a');
-        strong.textContent = 'Quelle: ';
+        link.className = 'btn-source';
         link.href = sourceUrl.href;
         link.target = '_blank';
         link.rel = 'noopener noreferrer';
-        link.textContent = recipe.source;
-        p.className = 'd-source';
-        p.append(strong, link);
-        extra.appendChild(p);
+        link.setAttribute('aria-label', 'Quelle öffnen');
+        link.innerHTML = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9"></path><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"></path></svg><span>Quelle</span>';
+        extra.appendChild(link);
       }
     } catch { /* Ungültige Quellenangaben werden nicht als Link angezeigt. */ }
   }

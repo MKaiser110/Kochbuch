@@ -28,6 +28,12 @@ export async function renderOverview() {
   setViewCleanup(() => { cleanupSearch(); cleanupSort(); });
   renderTagChips(tags, renderFiltered);
   setupIngredientFilterButton();
+  document.getElementById('empty-reset-filters').addEventListener('click', () => {
+    overviewState.search = '';
+    overviewState.tag = null;
+    overviewState.ingredients = new Set();
+    renderOverview();
+  });
   renderFiltered();
 }
 
@@ -186,9 +192,19 @@ function renderGrid(sortedRecipes, totalRecipes, seq) {
 
   if (totalRecipes === 0 || filtered.length === 0) {
     grid.replaceChildren();
-    emptyState.querySelector('.empty-message').textContent = totalRecipes === 0
-      ? 'Noch keine Rezepte. Tippe oben rechts auf „+“, um eines hinzuzufügen.'
-      : 'Keine Rezepte mit den ausgewählten Filtern gefunden.';
+    const message = emptyState.querySelector('.empty-message');
+    const summary = document.getElementById('empty-filter-summary');
+    const resetButton = document.getElementById('empty-reset-filters');
+    if (totalRecipes === 0) {
+      message.textContent = 'Noch keine Rezepte. Tippe oben rechts auf „+“, um eines hinzuzufügen.';
+      summary.hidden = true;
+      resetButton.hidden = true;
+    } else {
+      message.textContent = 'Keine Rezepte passen zu deiner Suche und den Filtern.';
+      summary.textContent = describeActiveFilters();
+      summary.hidden = false;
+      resetButton.hidden = false;
+    }
     emptyState.hidden = false;
     return;
   }
@@ -196,6 +212,16 @@ function renderGrid(sortedRecipes, totalRecipes, seq) {
 
   filtered.forEach(recipe => cards.appendChild(createTile(recipe)));
   grid.replaceChildren(cards);
+}
+
+function describeActiveFilters() {
+  const active = [];
+  if (overviewState.search) active.push('Suche „' + overviewState.search + '“');
+  if (overviewState.tag) active.push('Tag „' + overviewState.tag + '“');
+  if (overviewState.ingredients.size) {
+    active.push('Zutaten: ' + [...overviewState.ingredients].join(', '));
+  }
+  return active.join(' · ');
 }
 
 function createTile(recipe) {

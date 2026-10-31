@@ -29,6 +29,29 @@
 .form input:focus, .form textarea:focus { border-color: var(--line-strong); background-color: var(--surface); }
 .form textarea { min-height: 72px; resize: vertical; line-height: 1.5; }
 .form h3 { margin: 23px 0 12px; }
+.recipe-form-section + .recipe-form-section { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
+.recipe-form-section h3 { margin: 0 0 15px; }
+.recipe-form-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.recipe-form-fields label { min-width: 0; }
+#recipe-form .recipe-form-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  margin: 24px -22px -24px;
+  padding: 12px 22px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+#recipe-form .recipe-form-actions .btn-primary { margin-top: 0; }
+#recipe-form .recipe-form-actions .btn-secondary { min-height: 48px; padding-inline: 18px; }
+@media (max-width: 420px) {
+  .recipe-form-fields { grid-template-columns: 1fr 1fr; gap: 9px; }
+  #recipe-form .recipe-form-actions { margin-inline: -18px; padding-inline: 18px; }
+}
 .ing-row, .step-row { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; }
 .ing-row input:not([type="file"]) { min-width: 0; margin-top: 0; padding-inline: 9px; }
 .ing-row input:nth-child(1) { flex: 0 0 74px; }

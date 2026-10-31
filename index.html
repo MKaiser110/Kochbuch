@@ -76,6 +76,8 @@
       <path d="M56 13c-8-3-16-1.8-24 3v36c8-4.8 16-6 24-3V13Z"></path>
     </svg>
     <p class="empty-message">Noch keine Rezepte. Tippe oben rechts auf „+“, um eines hinzuzufügen.</p>
+    <p id="empty-filter-summary" class="empty-filter-summary" hidden></p>
+    <button id="empty-reset-filters" class="btn-secondary empty-reset" type="button" hidden>Suche und Filter zurücksetzen</button>
   </div>
 </template>
 
@@ -156,18 +158,21 @@
 <template id="tpl-cook">
   <div class="cook">
     <div class="cook-progress"><div class="cook-progress-bar"></div></div>
-    <div class="cook-timer">
-      <div class="cook-timer-header">
+    <details class="cook-timer">
+      <summary class="cook-timer-summary">
         <span>Timer</span>
-        <button type="button" class="cook-timer-reset">Zurücksetzen</button>
-      </div>
+        <span class="cook-timer-display">05:00</span>
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5"></path></svg>
+      </summary>
       <div class="cook-timer-controls">
-        <input class="cook-timer-minutes" type="number" min="0" max="180" step="1" value="5">
+        <label class="cook-timer-duration">Minuten
+          <input class="cook-timer-minutes" type="number" min="0" max="180" step="1" value="5">
+        </label>
         <button type="button" class="cook-timer-start">Start</button>
         <button type="button" class="cook-timer-pause">Pause</button>
+        <button type="button" class="cook-timer-reset">Zurücksetzen</button>
       </div>
-      <p class="cook-timer-display">05:00</p>
-    </div>
+    </details>
     <p class="cook-counter"></p>
     <div class="cook-step"></div>
     <div class="cook-nav">
@@ -272,27 +277,40 @@
 <template id="tpl-recipe-form">
   <form id="recipe-form" class="form">
     <p id="import-review-notice" class="status" role="status" hidden></p>
-    <label>Titel <input name="title" required></label>
-    <label>Tags (mit Komma trennen)
-      <input name="tags" type="text" autocomplete="off" placeholder="z.B. Hähnchen, schnell, vegetarisch">
-    </label>
-    <div id="tag-suggestions" class="chips tag-suggestions"></div>
-    <label>Portionen (Basis) <input name="servings" type="number" min="1" value="4" required></label>
-    <label>Zubereitungszeit (Min., optional) <input name="prepTime" type="number" min="0"></label>
-    <label>Quelle (optional) <input name="source"></label>
-    <label>Notiz / Kommentar <textarea name="notes" rows="3" placeholder="Was war besonders gut, was beim nächsten Mal besser machen?"></textarea></label>
-    <label>Bild (optional) <input name="image" type="file" accept="image/*"></label>
-    <div id="image-preview"></div>
+    <section class="recipe-form-section">
+      <h3>Rezeptangaben</h3>
+      <label>Titel <input name="title" required></label>
+      <label>Tags (mit Komma trennen)
+        <input name="tags" type="text" autocomplete="off" placeholder="z.B. Hähnchen, schnell, vegetarisch">
+      </label>
+      <div id="tag-suggestions" class="chips tag-suggestions"></div>
+      <div class="recipe-form-fields">
+        <label>Portionen (Basis) <input name="servings" type="number" min="1" value="4" required></label>
+        <label>Zubereitungszeit (Min., optional) <input name="prepTime" type="number" min="0"></label>
+      </div>
+      <label>Quelle (optional) <input name="source"></label>
+    </section>
 
-    <h3>Zutaten</h3>
-    <div id="ingredient-rows"></div>
-    <button type="button" id="add-ingredient-row" class="btn-secondary">+ Zutat</button>
+    <section class="recipe-form-section">
+      <h3>Notizen & Bild</h3>
+      <label>Notiz / Kommentar <textarea name="notes" rows="3" placeholder="Was war besonders gut, was beim nächsten Mal besser machen?"></textarea></label>
+      <label>Bild (optional) <input name="image" type="file" accept="image/*"></label>
+      <div id="image-preview"></div>
+    </section>
 
-    <h3>Zubereitungsschritte</h3>
-    <div id="step-rows"></div>
-    <button type="button" id="add-step-row" class="btn-secondary">+ Schritt</button>
+    <section class="recipe-form-section">
+      <h3>Zutaten</h3>
+      <div id="ingredient-rows"></div>
+      <button type="button" id="add-ingredient-row" class="btn-secondary">+ Zutat</button>
+    </section>
 
-    <div class="form-actions">
+    <section class="recipe-form-section">
+      <h3>Zubereitungsschritte</h3>
+      <div id="step-rows"></div>
+      <button type="button" id="add-step-row" class="btn-secondary">+ Schritt</button>
+    </section>
+
+    <div class="form-actions recipe-form-actions">
       <button type="submit" class="btn-primary">Speichern</button>
       <button type="button" id="form-cancel" class="btn-secondary">Abbrechen</button>
     </div>

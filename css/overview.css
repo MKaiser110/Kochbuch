@@ -41,3 +41,5 @@
 }
 .empty-icon { width: 58px; height: 58px; margin-bottom: 20px; color: #d4d6d8; }
 .empty-message { max-width: 360px; margin: 0; font-size: .93rem; line-height: 1.7; }
+.empty-filter-summary { max-width: 420px; margin: 12px 0 0; font-size: .82rem; line-height: 1.5; overflow-wrap: anywhere; }
+.empty-reset { margin-top: 16px; }

@@ -5,7 +5,26 @@
 .d-title { margin: 0 0 7px; font-size: clamp(1.45rem, 5vw, 2rem); font-weight: 650; letter-spacing: -.035em; line-height: 1.2; }
 .d-meta { margin: 0 0 22px; color: var(--ink-soft); font-size: .88rem; }
 .d-extra p { margin: 0 0 8px; line-height: 1.5; }
-.d-extra a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; overflow-wrap: anywhere; }
+.d-extra { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin: -8px 0 20px; }
+.d-extra p { flex: 1 0 100%; }
+.btn-source {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-size: .86rem;
+  font-weight: 550;
+  text-decoration: none;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+.btn-source:hover { border-color: var(--line-strong); background: var(--surface); }
+.btn-source svg { width: 17px; height: 17px; flex: 0 0 auto; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+
 .servings-control { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; color: var(--ink-soft); font-size: .9rem; }
 .wake-lock-toggle { display: flex; align-items: center; gap: 9px; margin-bottom: 20px; color: var(--ink-soft); font-size: .83rem; }
 .wake-lock-toggle input, .ingredient-checklist input { width: 18px; height: 18px; accent-color: var(--ink); }
@@ -39,7 +58,7 @@
 .btn-primary { margin-top: 6px; }
 .btn-primary:hover, .btn-cook-mode:hover { opacity: .88; }
 .btn-primary:active, .btn-cook-mode:active { transform: scale(.99); }
-.detail section { margin-bottom: 28px; }
+.detail section { margin-bottom: 18px; padding: 17px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface-soft); }
 .detail h3, .form h3 {
   margin: 0 0 12px;
   color: var(--ink-soft);
