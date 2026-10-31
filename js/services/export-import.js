@@ -5,6 +5,7 @@
 import { getAllRecipes, saveRecipe } from '../core/db.js';
 import { normalizeTags, findDuplicate, clampRating } from '../core/recipe-model.js';
 import { downloadJson, readJsonFile } from '../utils/files.js';
+import { MAX_IMAGE_DATA_URL_LENGTH } from './image-utils.js';
 
 const FORMAT_VERSION = 3; // 3: favorites, rating, notes
 
@@ -62,6 +63,9 @@ export async function importRecipeFromFile(file, askAboutDuplicates) {
 function normalizeImportedRecipe(r) {
   if (!r || typeof r !== 'object' || !r.title || !r.id) return null;
   const tags = Array.isArray(r.tags) ? r.tags : (r.category ? [r.category] : []);
+  const imageTooLarge = typeof r.image === 'string' && r.image.length > MAX_IMAGE_DATA_URL_LENGTH;
+  const importWarnings = Array.isArray(r.importWarnings) ? r.importWarnings : [];
+  if (imageTooLarge) importWarnings.push('Das Bild wurde beim Import ausgelassen, weil es die zulässige Größe überschreitet.');
   return {
     id: r.id,
     title: r.title,
@@ -73,10 +77,10 @@ function normalizeImportedRecipe(r) {
     servingsKnown: Boolean(r.servingsKnown),
     ingredients: Array.isArray(r.ingredients) ? r.ingredients : [],
     steps: Array.isArray(r.steps) ? r.steps : [],
-    image: r.image || null,
+    image: imageTooLarge ? null : (r.image || null),
     prepTime: r.prepTime ?? null,
-    importWarnings: Array.isArray(r.importWarnings) ? r.importWarnings : [],
-    reviewRequired: Boolean(r.reviewRequired),
+    importWarnings,
+    reviewRequired: Boolean(r.reviewRequired || imageTooLarge),
     source: r.source ?? null,
     createdAt: r.createdAt || Date.now(),
     updatedAt: Date.now(),
