@@ -74,7 +74,12 @@
 #btn-back:not([hidden]) { margin-left: -8px; }
 
 #app {
-  min-height: calc(100dvh - 92px);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   padding: 8px 22px 36px;
   border-radius: 0 0 26px 26px;
 }
