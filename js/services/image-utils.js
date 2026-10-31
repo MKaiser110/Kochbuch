@@ -3,8 +3,7 @@
 // die Datenbank schnell aufblähen; als DataURL skaliert auf vernünftige
 // Anzeigegröße bleibt jedes Bild im Bereich weniger hundert KB.
 
-import { fileToDataUrl } from '../utils/files.js';
-
+export const MAX_IMAGE_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
 const MAX_DIMENSION = 1600; // px, längste Kante
 const JPEG_QUALITY = 0.8;
 
@@ -35,6 +34,7 @@ export function loadImageFromFile(file) {
  * @returns {Promise<string>} komprimierte DataURL (JPEG)
  */
 async function compressImageToDataUrl(file) {
+  if (!file || file.size > MAX_IMAGE_FILE_SIZE) throw new Error('IMAGE_TOO_LARGE');
   const img = await loadImageFromFile(file);
 
   let { width, height } = img;
@@ -47,12 +47,26 @@ async function compressImageToDataUrl(file) {
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
-  canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('IMAGE_PROCESSING_FAILED');
+  context.drawImage(img, 0, 0, width, height);
 
-  return canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY));
+  if (!blob) throw new Error('IMAGE_PROCESSING_FAILED');
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('IMAGE_PROCESSING_FAILED'));
+    reader.readAsDataURL(blob);
+  });
 }
 
-/** Komprimiert ein Bild; falls das scheitert, wird die Originaldatei als DataURL übernommen. */
-export function imageFileToDataUrl(file) {
-  return compressImageToDataUrl(file).catch(() => fileToDataUrl(file));
+/** Komprimiert ein Bild; bei Fehlern wird kein unkomprimiertes Original gespeichert. */
+export async function imageFileToDataUrl(file) {
+  try {
+    return await compressImageToDataUrl(file);
+  } catch (error) {
+    if (error?.message === 'IMAGE_TOO_LARGE') throw error;
+    throw new Error('IMAGE_PROCESSING_FAILED');
+  }
 }
