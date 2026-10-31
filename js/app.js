@@ -40,7 +40,9 @@ function setupConnectionStatus() {
     status.hidden = navigator.onLine || !onStartScreen;
     if (!status.hidden) {
       const ocrUsable = Boolean(globalThis.Tesseract?.createWorker);
-      status.textContent = `Offline · OCR ${ocrUsable ? 'verfügbar' : 'nicht verfügbar'}`;
+      status.textContent = ocrUsable
+        ? 'Offline · Buchseiten scannen ist verfügbar'
+        : 'Offline · Buchseiten scannen ist nicht verfügbar';
     }
   };
   window.addEventListener('online', update);
