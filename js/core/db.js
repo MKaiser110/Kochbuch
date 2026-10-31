@@ -13,7 +13,7 @@ let dbPromise = null;
 
 function openDB() {
   if (dbPromise) return dbPromise;
-  dbPromise = new Promise((resolve, reject) => {
+  const opening = new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = event => {
       const db = req.result;
@@ -39,7 +39,11 @@ function openDB() {
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
-  return dbPromise;
+  dbPromise = opening;
+  opening.catch(() => {
+    if (dbPromise === opening) dbPromise = null;
+  });
+  return opening;
 }
 
 async function getStore(mode) {

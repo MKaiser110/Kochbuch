@@ -1,13 +1,15 @@
 // ocr-import.js — Texterkennung aus Foto über Tesseract.js (browserbasiert,
 // läuft komplett lokal/offline nach erstem Laden, kein Server nötig).
-// Tesseract.js wird als globales Script in index.html eingebunden.
+// Tesseract.js wird erst beim ersten Scan nachgeladen.
 
 import { blankRecipe } from '../core/recipe-model.js';
 import { parseIngredientLine } from './recipe-import/ingredient-parser.js';
 import { normalizeImportedRecipe } from './recipe-import/normalize.js';
 import { loadImageFromFile } from './image-utils.js';
 
+const TESSERACT_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
 const OCR_LANG_PATH = 'https://tessdata.projectnaptha.com/4.0.0_best';
+let tesseractPromise = null;
 const MAX_IMAGE_DIMENSION = 2800;
 const MIN_IMAGE_DIMENSION = 1600;
 const MAX_IMAGE_FILE_SIZE = 20 * 1024 * 1024;
@@ -16,9 +18,9 @@ export async function recognizeImage(file, onProgress) {
   if (!file || (file.type && !file.type.startsWith('image/')) || file.size > MAX_IMAGE_FILE_SIZE) {
     throw new Error('INVALID_IMAGE');
   }
-  if (!globalThis.Tesseract?.createWorker) throw new Error('OCR_UNAVAILABLE');
+  const tesseract = await loadTesseract();
   const image = await prepareImage(file);
-  const worker = await Tesseract.createWorker('deu+eng', 1, {
+  const worker = await tesseract.createWorker('deu+eng', 1, {
     langPath: OCR_LANG_PATH,
     logger: m => {
       if (onProgress && m.status === 'recognizing text') {
@@ -37,6 +39,35 @@ export async function recognizeImage(file, onProgress) {
   } finally {
     await worker.terminate();
   }
+}
+
+
+/** Lädt Tesseract nur bei Bedarf; fehlgeschlagene Downloads können erneut versucht werden. */
+function loadTesseract() {
+  if (globalThis.Tesseract?.createWorker) return Promise.resolve(globalThis.Tesseract);
+  if (!tesseractPromise) {
+    tesseractPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = TESSERACT_SCRIPT_URL;
+      script.async = true;
+      script.onload = () => {
+        if (globalThis.Tesseract?.createWorker) resolve(globalThis.Tesseract);
+        else {
+          script.remove();
+          reject(new Error('OCR_UNAVAILABLE'));
+        }
+      };
+      script.onerror = () => {
+        script.remove();
+        reject(new Error('OCR_UNAVAILABLE'));
+      };
+      document.head.appendChild(script);
+    }).catch(error => {
+      tesseractPromise = null;
+      throw error;
+    });
+  }
+  return tesseractPromise;
 }
 
 /** Skaliert das Foto und erhöht den Kontrast (Graustufen), damit Tesseract besser liest. */
