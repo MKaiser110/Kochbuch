@@ -5,14 +5,14 @@
 import { blankRecipe } from '../core/recipe-model.js';
 import { parseIngredientLine } from './recipe-import/ingredient-parser.js';
 import { normalizeImportedRecipe } from './recipe-import/normalize.js';
-import { loadImageFromFile } from './image-utils.js';
+import { loadImageFromFile, MAX_IMAGE_FILE_SIZE } from './image-utils.js';
 
 const TESSERACT_SCRIPT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
 const OCR_LANG_PATH = 'https://tessdata.projectnaptha.com/4.0.0_best';
 let tesseractPromise = null;
 const MAX_IMAGE_DIMENSION = 2800;
 const MIN_IMAGE_DIMENSION = 1600;
-const MAX_IMAGE_FILE_SIZE = 20 * 1024 * 1024;
+
 
 export async function recognizeImage(file, onProgress) {
   if (!file || (file.type && !file.type.startsWith('image/')) || file.size > MAX_IMAGE_FILE_SIZE) {
