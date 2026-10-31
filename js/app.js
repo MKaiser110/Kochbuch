@@ -5,6 +5,7 @@ import { initRouter } from './router.js';
 import { openAddMenu } from './sheets/add-menu.js';
 import { openDataMenu } from './sheets/data-menu.js';
 import { renderOverview } from './views/overview.js';
+import { getRecipe } from './core/db.js';
 import { focusShopping, openProductCatalog, chooseRecipeIngredients } from './views/shopping.js';
 
 disablePageZoom();
@@ -72,8 +73,8 @@ function setupRecipeShoppingAction() {
     button.className = 'btn-secondary btn-shopping-ingredients';
     button.textContent = 'Zutaten zur Einkaufsliste';
     button.addEventListener('click', () => {
-      const ingredients = [...detail.querySelectorAll('.ingredient-list li')].map(li => ({name: li.textContent.trim(), amount: '', unit: ''}));
-      chooseRecipeIngredients(ingredients);
+      const recipeId = location.hash.slice('#recipe/'.length);
+      getRecipe(recipeId).then(recipe => { if (recipe) chooseRecipeIngredients(recipe.ingredients); });
     });
     detail.querySelector('.ingredient-list')?.closest('section')?.prepend(button);
   };
