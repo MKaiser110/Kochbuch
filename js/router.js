@@ -15,6 +15,8 @@ import { renderCook } from './views/cook-mode.js';
 import { renderEditForm } from './views/recipe-form.js';
 
 const btnBack = document.getElementById('btn-back');
+let currentHash = null;
+let overviewScrollY = 0;
 
 export function initRouter() {
   window.addEventListener('hashchange', route);
@@ -37,6 +39,12 @@ function goBack() {
 
 function route() {
   const hash = location.hash.slice(1);
+  const previousHash = currentHash;
+  const restoreOverview = !hash && previousHash?.startsWith('recipe/');
+  if (previousHash === '' && hash.startsWith('recipe/')) {
+    overviewScrollY = window.scrollY;
+  }
+  currentHash = hash;
   window.scrollTo(0, 0);
   closeSheet();
   startNavigation();
@@ -63,6 +71,8 @@ function route() {
     renderEditForm(null);
   } else {
     btnBack.hidden = true;
-    renderOverview();
+    renderOverview().then(() => {
+      requestAnimationFrame(() => window.scrollTo(0, restoreOverview ? overviewScrollY : 0));
+    });
   }
 }
