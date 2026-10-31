@@ -1,6 +1,7 @@
 /* shell.css — Kopfzeile (Topbar) und Inhaltsbereich (#app). */
 
 body {
+  --shell-inset: 8px;
   display: flex;
   height: 100vh;
   height: 100dvh;
