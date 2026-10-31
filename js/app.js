@@ -49,6 +49,17 @@ function setupBottomNavigation() {
     if (tab) location.hash = tab === 'shopping' ? 'shopping' : '';
   });
   document.body.append(nav);
+  const syncVisibility = () => {
+    const hash = location.hash;
+    const overview = !hash || hash === '#' || hash === '#shopping';
+    const sheetOpen = Boolean(document.querySelector('#sheet-overlay:not([hidden])'));
+    const dialogOpen = Boolean(document.querySelector('dialog[open]'));
+    nav.hidden = !(overview && !sheetOpen && !dialogOpen);
+  };
+  const observer = new MutationObserver(syncVisibility);
+  observer.observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['hidden','open']});
+  window.addEventListener('hashchange', syncVisibility);
+  syncVisibility();
 }
 
 function updateHeaderForTab() {
