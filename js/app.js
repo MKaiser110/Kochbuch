@@ -5,15 +5,23 @@ import { initRouter } from './router.js';
 import { openAddMenu } from './sheets/add-menu.js';
 import { openDataMenu } from './sheets/data-menu.js';
 import { renderOverview } from './views/overview.js';
+import { focusShopping, openProductCatalog, chooseRecipeIngredients } from './views/shopping.js';
 
 disablePageZoom();
 initRouter();
 
-document.getElementById('btn-add').addEventListener('click', openAddMenu);
+setupBottomNavigation();
+document.getElementById('btn-add').addEventListener('click', () => {
+  if (location.hash === '#shopping') focusShopping(); else openAddMenu();
+});
+updateHeaderForTab();
+window.addEventListener('hashchange', updateHeaderForTab);
+setupRecipeShoppingAction();
 setupConnectionStatus();
 setupSheetGuidance();
 
 document.getElementById('btn-data-menu').addEventListener('click', () => {
+  if (location.hash === '#shopping') { openProductCatalog(); return; }
   openDataMenu(() => {
     if (location.hash === '' || location.hash === '#') renderOverview();
   });
@@ -25,6 +33,53 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+
+function setupBottomNavigation() {
+  const nav = document.createElement('nav');
+  nav.className = 'shopping-nav';
+  nav.setAttribute('aria-label', 'Hauptnavigation');
+  nav.innerHTML = '<button type="button" data-tab="recipes">Rezepte</button><button type="button" data-tab="shopping">Einkaufsliste</button>';
+  nav.addEventListener('click', event => {
+    const tab = event.target.closest('[data-tab]')?.dataset.tab;
+    if (tab) location.hash = tab === 'shopping' ? 'shopping' : '';
+  });
+  document.body.append(nav);
+}
+
+function updateHeaderForTab() {
+  const shopping = location.hash === '#shopping';
+  document.querySelector('.topbar h1').textContent = shopping ? 'Einkaufsliste' : 'Kochbuch';
+  document.getElementById('btn-add').setAttribute('aria-label', shopping ? 'Produkt hinzufügen' : 'Rezept hinzufügen');
+  document.getElementById('btn-data-menu').setAttribute('aria-label', shopping ? 'Produktkatalog verwalten' : 'Rezepte sichern und wiederherstellen');
+  const nav = document.querySelector('.shopping-nav');
+  nav?.querySelectorAll('[data-tab]').forEach(button => {
+    const active = button.dataset.tab === (shopping ? 'shopping' : 'recipes');
+    button.classList.toggle('active', active);
+    button.setAttribute('aria-current', active ? 'page' : 'false');
+  });
+  if (nav) nav.hidden = location.hash.startsWith('#recipe/') || location.hash.startsWith('#edit/') || location.hash.startsWith('#cook/') || location.hash === '#new';
+  document.body.classList.toggle('shopping-active', shopping);
+}
+
+function setupRecipeShoppingAction() {
+  const app = document.getElementById('app');
+  const addButton = () => {
+    if (!location.hash.startsWith('#recipe/')) return;
+    const detail = app.querySelector('.detail');
+    if (!detail || detail.querySelector('.btn-shopping-ingredients')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn-secondary btn-shopping-ingredients';
+    button.textContent = 'Zutaten zur Einkaufsliste';
+    button.addEventListener('click', () => {
+      const ingredients = [...detail.querySelectorAll('.ingredient-list li')].map(li => ({name: li.textContent.trim(), amount: '', unit: ''}));
+      chooseRecipeIngredients(ingredients);
+    });
+    detail.querySelector('.ingredient-list')?.closest('section')?.prepend(button);
+  };
+  new MutationObserver(addButton).observe(app, {childList:true,subtree:true});
+  addButton();
+}
 
 function setupConnectionStatus() {
   const status = document.createElement('p');
