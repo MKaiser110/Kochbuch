@@ -95,3 +95,23 @@ Dann `http://localhost:8000` öffnen. Service Worker funktioniert unter
   Exportiert wird mit der auf der Detailseite gewählten Portionenzahl.
 - **Kochmodus** (Route `#cook/<id>?s=<portionen>`): ein Schritt pro Seite,
   Wischen/Pfeiltasten, Bildschirm bleibt wach, Zutatenliste jederzeit abrufbar.
+
+
+## Verbesserungen am Rezeptimport
+
+- URL-Import mit Zeitlimit, Größenlimit, explizitem HTTP(S)-Schema und Ablehnung lokaler/private Hostnamen.
+- Direkter Abruf vor Drittanbieter-Proxys; Zugangsdaten werden nicht an Fetch-Anfragen übergeben.
+- Robustere Mengen-/Einheiten-Erkennung (Dezimalzahlen, Brüche und gemischte Brüche).
+- Verbesserte Schema.org-Verarbeitung für verschachtelte `@type`-Werte, strukturierte Zutaten, Anleitungen und relative Bild-URLs.
+- Zusätzliche Plausibilitätsprüfungen gegen Navigations- und Werbetexte.
+- Aktualisierte Service-Worker-Cache-Version.
+
+### Tests
+
+Mit Node.js 20 oder neuer ausführen:
+
+```sh
+npm test
+```
+
+Hinweis: Der URL-Import kann weiterhin an CORS-Regeln, Website-Schutzmechanismen oder der Verfügbarkeit externer Reader-/Proxy-Dienste scheitern. Ein dauerhaft zuverlässiger Import beliebiger Websites benötigt einen eigenen Server-/Worker-Proxy.

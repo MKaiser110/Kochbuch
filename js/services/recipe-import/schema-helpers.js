@@ -38,11 +38,12 @@ export function parseServings(y) {
 // z.B. "PT30M" -> 30
 export function parseIsoDuration(iso) {
   if (!iso) return null;
-  const match = String(iso).match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  const match = String(iso).match(/^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/i);
   if (!match) return null;
-  const h = parseInt(match[1] || '0', 10);
-  const m = parseInt(match[2] || '0', 10);
-  return h * 60 + m || null;
+  const days = parseInt(match[1] || '0', 10);
+  const hours = parseInt(match[2] || '0', 10);
+  const minutes = parseInt(match[3] || '0', 10);
+  return days * 1440 + hours * 60 + minutes || null;
 }
 
 export function flattenInstructions(instructions) {

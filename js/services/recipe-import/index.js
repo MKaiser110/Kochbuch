@@ -1,21 +1,5 @@
-// recipe-import/index.js
-//
-// Import aus einer Rezept-URL. Die meisten Rezeptseiten betten strukturierte
-// Daten nach schema.org/Recipe als <script type="application/ld+json"> ein —
-// das ist der zuverlässigste, seitenunabhängige Weg und wird hier genutzt.
-//
-// Wichtige Einschränkung (technisch unumgänglich ohne eigenen Server):
-// Ein Fetch direkt aus dem Browser scheitert bei den meisten Seiten an CORS,
-// weil die Website keine Cross-Origin-Anfragen erlaubt. Deshalb: erst
-// direkter Versuch, dann automatisch über einen öffentlichen CORS-Proxy
-// (der die Seite serverseitig abruft und mit CORS-Headern zurückgibt) —
-// das deckt die große Mehrheit der Fälle ab. Nur wenn auch das fehlschlägt,
-// Fallback auf eingefügten Seitentext/HTML (Nutzer kopiert manuell hinein).
-//
-// Der Proxy ist ein Drittanbieter-Dienst ohne Verfügbarkeitsgarantie. Für
-// einen produktiven Einsatz wäre ein eigener kleiner Proxy (z.B. eine
-// Cloudflare Worker-Funktion) robuster, aber dann ist "keine Serveranbindung
-// nötig" aus den Vorgaben nicht mehr erfüllt — daher hier bewusst so gelöst.
+// Robuster Rezeptimport: JSON-LD/Microdata zuerst, Reader-Text als Fallback.
+// Ohne eigenen Backend-Proxy bleiben CORS- und Drittanbieter-Verfügbarkeit externe Grenzen.
 
 import { extractFromHtml } from './html-extract.js';
 import { extractFromReaderText } from './reader-extract.js';
@@ -23,66 +7,98 @@ import { extractFromReaderText } from './reader-extract.js';
 export { extractFromHtml, extractFromReaderText };
 export { parseIngredientLine } from './ingredient-parser.js';
 
+const REQUEST_TIMEOUT_MS = 12000;
+const MAX_RESPONSE_CHARS = 5_000_000;
 const CORS_PROXIES = [
   url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
   url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
 ];
-
-// Letzter automatischer Versuch, bevor auf manuelles Einfügen zurückgefallen
-// wird: ein Reader-Dienst, der die Seite serverseitig lädt und als
-// lesbaren Text zurückgibt (kein HTML/JSON-LD mehr, aber CORS-offen und in
-// der Praxis deutlich zuverlässiger erreichbar als die generischen Proxies).
 const READER_PREFIX = 'https://r.jina.ai/';
 
-export async function importFromUrl(url) {
-  const parsedUrl = new URL(url);
-  if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+export async function importFromUrl(input) {
+  const url = validateRecipeUrl(input);
+  let partialText = '';
+
+  // Fetch direct zuerst: vermeidet unnötige Weitergabe der URL an Drittanbieter.
+  const direct = await fetchText(url);
+  if (direct) {
+    const recipe = safeExtractHtml(direct, url);
+    if (recipe) return recipe;
+  }
+
+  // CORS-Proxys sind nur ein Best-Effort-Fallback.
+  for (const makeProxyUrl of CORS_PROXIES) {
+    const html = await fetchText(makeProxyUrl(url));
+    if (!html) continue;
+    const recipe = safeExtractHtml(html, url);
+    if (recipe) return recipe;
+  }
+
+  // Reader-Fallback liefert normalerweise Markdown/Text statt HTML.
+  partialText = await fetchText(READER_PREFIX + url) || '';
+  if (partialText) {
+    const recipe = safeExtractText(partialText, url);
+    if (recipe) return recipe;
+  }
+
+  const error = new Error('IMPORT_FAILED');
+  error.partialText = partialText.slice(0, 250000) || null;
+  throw error;
+}
+
+export function validateRecipeUrl(input) {
+  let parsed;
+  try { parsed = new URL(String(input || '').trim()); }
+  catch { throw new Error('INVALID_URL'); }
+  if (!['http:', 'https:'].includes(parsed.protocol)
+      || !parsed.hostname || parsed.username || parsed.password
+      || isLocalHostname(parsed.hostname)) {
     throw new Error('INVALID_URL');
   }
-
-  // 1) direkter Fetch — funktioniert nur, wenn die Zielseite CORS erlaubt
-  const direct = await tryDirectFetch(url);
-  if (direct) {
-    const r = extractFromHtml(direct, url);
-    if (r) return r;
-  }
-
-  // 2) über CORS-Proxys — liefert echtes HTML, gleiche Extraktion
-  for (const buildProxyUrl of CORS_PROXIES) {
-    const html = await tryFetchText(buildProxyUrl(url));
-    if (!html || html.length < 200) continue;
-    const r = extractFromHtml(html, url);
-    if (r) return r;
-  }
-
-  // 3) Reader-Fallback — liefert nur Text, dafür sehr zuverlässig erreichbar
-  const readerText = await tryFetchText(READER_PREFIX + url);
-  if (readerText && readerText.length > 100) {
-    const r = extractFromReaderText(readerText, url);
-    if (r) return r;
-  }
-
-  const e = new Error('IMPORT_FAILED');
-  e.partialText = readerText || null; // falls vorhanden: für manuellen Fallback vorbefüllen
-  throw e;
+  return parsed.href;
 }
 
-async function tryDirectFetch(url) {
-  try {
-    const res = await fetch(url, { mode: 'cors' });
-    if (!res.ok) return null;
-    return await res.text();
-  } catch {
-    return null;
+function isLocalHostname(hostname) {
+  const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local')) return true;
+  if (host === '::1' || host === '::' || /^(fc|fd|fe[89ab])/i.test(host)) return true;
+  const parts = host.split('.');
+  if (parts.length === 4 && parts.every(p => /^\d+$/.test(p))) {
+    const [a,b] = parts.map(Number);
+    if (parts.some(p => Number(p) > 255)) return true;
+    return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254)
+      || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168);
   }
+  return false;
 }
 
-async function tryFetchText(fetchUrl) {
+function safeExtractHtml(html, sourceUrl) {
+  try { return extractFromHtml(html, sourceUrl); } catch { return null; }
+}
+function safeExtractText(text, sourceUrl) {
+  try { return extractFromReaderText(text, sourceUrl); } catch { return null; }
+}
+
+async function fetchText(url) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const res = await fetch(fetchUrl);
-    if (!res.ok) return null;
-    return await res.text();
+    const response = await fetch(url, {
+      method: 'GET',
+      mode: 'cors',
+      credentials: 'omit',
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: { Accept: 'text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.5' },
+    });
+    if (!response.ok) return null;
+    const type = response.headers.get('content-type') || '';
+    if (type && !/(text\/|application\/(xhtml\+xml|json))/i.test(type)) return null;
+    const text = await response.text();
+    return text.length <= MAX_RESPONSE_CHARS ? text : null;
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }

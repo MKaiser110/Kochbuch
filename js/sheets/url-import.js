@@ -11,29 +11,32 @@ export function openUrlImport() {
     const fallback = node.querySelector('#url-fallback');
     const fallbackText = node.querySelector('#url-fallback-text');
 
-    node.querySelector('#url-fetch-btn').addEventListener('click', async () => {
+    const fetchButton = node.querySelector('#url-fetch-btn');
+    fetchButton.addEventListener('click', async () => {
       const url = input.value.trim();
-      if (!url) return;
-      status.textContent = 'Importiere … (versuche mehrere Wege, kann 10–20 Sek. dauern)';
+      if (!url) {
+        status.textContent = 'Bitte zuerst eine Rezept-URL eingeben.';
+        input.focus();
+        return;
+      }
+      fetchButton.disabled = true;
+      status.textContent = 'Importiere Rezept …';
       fallback.hidden = true;
       try {
         const recipe = await importFromUrl(url);
-        status.textContent = 'Gefunden — bitte prüfen und speichern.';
         closeSheet();
         openFormWithDraft(recipe);
       } catch (err) {
-        if (err && err.message === 'INVALID_URL') {
-          status.textContent = 'Bitte eine gültige Rezeptadresse mit http oder https eingeben.';
+        if (err?.message === 'INVALID_URL') {
+          status.textContent = 'Bitte eine gültige öffentliche http- oder https-Adresse eingeben.';
           return;
         }
-        status.textContent = 'Kein vollständiges Rezept erkannt — bitte Seiteninhalt einfügen und prüfen.';
+        status.textContent = 'Kein vollständiges Rezept erkannt. Du kannst den Seiteninhalt unten einfügen.';
         fallback.hidden = false;
         fallback.open = true;
-        // Falls wenigstens über den Reader-Fallback Text geholt werden konnte,
-        // direkt vorausfüllen — erspart erneutes Kopieren.
-        if (err && err.partialText) {
-          fallbackText.value = err.partialText;
-        }
+        if (err?.partialText) fallbackText.value = err.partialText;
+      } finally {
+        fetchButton.disabled = false;
       }
     });
 
@@ -43,7 +46,9 @@ export function openUrlImport() {
       // Eingefügter Inhalt kann HTML (Seitenquelltext) oder reiner Text sein
       // (z.B. per "Alles auswählen" kopiert, oder vom Reader-Fallback vorbefüllt).
       // Erst als HTML versuchen, dann als Fließtext.
-      const recipe = extractFromHtml(text, sourceUrl) || extractFromReaderText(text, sourceUrl);
+      const recipe = (/<[a-z][\\s\\S]*>/i.test(text) ? extractFromHtml(text, sourceUrl) : null)
+        || extractFromReaderText(text, sourceUrl)
+        || extractFromHtml(text, sourceUrl);
       if (recipe) {
         closeSheet();
         openFormWithDraft(recipe);
