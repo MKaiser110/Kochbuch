@@ -81,7 +81,7 @@ self.addEventListener('fetch', event => {
   if (req.method !== 'GET') return;
 
   // Externe Ressourcen (z.B. CDN, Rezeptseiten für Import) nicht cachen —
-  // nur die eigene App-Shell (Cache-First mit Netzwerk-Fallback).
+  // eigene App-Dateien online zuerst aktuell laden und offline aus dem Cache bedienen.
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
