@@ -1,102 +1,109 @@
-// sw.js — cached die App-Shell, damit die App offline startet.
-// Rezeptdaten liegen ohnehin lokal in IndexedDB, nicht im Cache.
-
-// This name identifies the cache bucket, not an app release. The worker
-// refreshes cached files from the network on each request while online.
+// Offline cache for the app shell. First-party modules and stylesheets are
+// discovered from index.html and their imports, so new files need no list entry.
 const CACHE_NAME = 'kochbuch-shell';
-const SHELL_FILES = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icons/icon.svg',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './css/base.css',
-  './css/shell.css',
-  './css/controls.css',
-  './css/overview.css',
-  './css/detail.css',
-  './css/sheets.css',
-  './css/form.css',
-  './css/cook.css',
-  './css/responsive.css',
-  './js/app.js',
-  './js/core/db.js',
-  './js/core/recipe-model.js',
-  './js/core/recipe-query.js',
-  './js/core/sync-adapter.js',
-  './js/router.js',
-  './js/services/export-import.js',
-  './js/services/image-utils.js',
-  './js/services/ocr-import.js',
-  './js/services/pdf-export.js',
-  './js/services/recipe-import/html-extract.js',
-  './js/services/recipe-import/html-semantic.js',
-  './js/services/recipe-import/index.js',
-  './js/services/recipe-import/ingredient-parser.js',
-  './js/services/recipe-import/json-ld.js',
-  './js/services/recipe-import/microdata.js',
-  './js/services/recipe-import/normalize.js',
-  './js/services/recipe-import/ranking.js',
-  './js/services/recipe-import/reader-extract.js',
-  './js/services/recipe-import/schema-helpers.js',
-  './js/services/recipe-import/validation.js',
-  './js/services/scaling.js',
-  './js/services/wake-lock.js',
-  './js/sheets/add-menu.js',
-  './js/sheets/data-menu.js',
-  './js/sheets/ingredient-filter.js',
-  './js/sheets/scan-import.js',
-  './js/sheets/sheet.js',
-  './js/sheets/url-import.js',
-  './js/state.js',
-  './js/utils/dom.js',
-  './js/utils/files.js',
-  './js/vendor/jspdf.umd.min.js',
-  './js/view-lifecycle.js',
-  './js/views/cook-mode.js',
-  './js/views/detail.js',
-  './js/views/overview.js',
-  './js/views/recipe-form.js',
-];
+
+async function collectAppFiles() {
+  const root = new URL('./', self.location.href);
+  const urls = new Map();
+  const pending = [];
+  const add = (reference, base) => {
+    let url;
+    try {
+      url = new URL(reference, base);
+    } catch {
+      return;
+    }
+    if (url.origin !== self.location.origin || url.protocol !== 'http:' && url.protocol !== 'https:') return;
+    url.hash = '';
+    if (urls.has(url.href)) return;
+    urls.set(url.href, url);
+    if (/\.m?js$/.test(url.pathname)) pending.push({ url, type: 'js' });
+    else if (/\.css$/.test(url.pathname)) pending.push({ url, type: 'css' });
+    else if (/\.json$/.test(url.pathname)) pending.push({ url, type: 'json' });
+  };
+
+  const indexUrl = new URL('index.html', root);
+  add('./', root);
+  add(indexUrl.href, root);
+  add('manifest.json', root);
+
+  const indexResponse = await fetch(indexUrl);
+  if (!indexResponse.ok) throw new Error('Could not read app entry point');
+  const html = await indexResponse.text();
+  for (const match of html.matchAll(/<(?:link|script)\b[^>]*?\b(?:href|src)=["']([^"']+)["'][^>]*>/gi)) {
+    add(match[1], indexUrl);
+  }
+
+  const inspected = new Set();
+  while (pending.length) {
+    const { url, type } = pending.shift();
+    if (inspected.has(url.href)) continue;
+    inspected.add(url.href);
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Could not read app resource: ${url.pathname}`);
+    const source = await response.text();
+
+    if (type === 'js') {
+      const imports = /\bimport\s*(?:\(\s*)?["']([^"']+)["']|\bfrom\s*["']([^"']+)["']/g;
+      for (const match of source.matchAll(imports)) add(match[1] || match[2], url);
+      const localUrls = /\bnew\s+URL\(\s*["']([^"']+)["']/g;
+      for (const match of source.matchAll(localUrls)) add(match[1], url);
+    } else if (type === 'css') {
+      const assets = /url\(\s*["']?([^"')]+)["']?\s*\)/g;
+      for (const match of source.matchAll(assets)) add(match[1].trim(), url);
+    } else if (type === 'json') {
+      try {
+        const manifest = JSON.parse(source);
+        for (const icon of manifest.icons || []) add(icon.src, url);
+      } catch {
+        throw new Error('Could not read app manifest');
+      }
+    }
+  }
+
+  return [...urls.values()];
+}
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(SHELL_FILES))
-  );
-  self.skipWaiting();
+  event.waitUntil((async () => {
+    const files = await collectAppFiles();
+    const cache = await caches.open(CACHE_NAME);
+    await cache.addAll(files);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k.startsWith('kochbuch-shell-') && k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys
+      .filter(key => key.startsWith('kochbuch-shell-') && key !== CACHE_NAME)
+      .map(key => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', event => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
+  const request = event.request;
+  if (request.method !== 'GET') return;
 
-  // Externe Ressourcen (z.B. CDN, Rezeptseiten für Import) nicht cachen —
-  // eigene App-Dateien online zuerst aktuell laden und offline aus dem Cache bedienen.
-  const url = new URL(req.url);
+  // External resources, such as OCR downloads and recipe sites, are not cached.
+  const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
   event.respondWith((async () => {
-    const cached = await caches.match(req);
+    const cached = await caches.match(request);
     try {
-      const response = await fetch(req);
+      const response = await fetch(request);
       if (response.ok && response.type !== 'opaque') {
         const cache = await caches.open(CACHE_NAME);
-        await cache.put(req, response.clone());
+        await cache.put(request, response.clone());
       }
       return response;
     } catch {
       if (cached) return cached;
-      if (req.mode === 'navigate') {
+      if (request.mode === 'navigate') {
         return (await caches.match('./index.html')) || Response.error();
       }
       return Response.error();
