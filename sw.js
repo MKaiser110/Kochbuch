@@ -1,7 +1,9 @@
 // sw.js — cached die App-Shell, damit die App offline startet.
 // Rezeptdaten liegen ohnehin lokal in IndexedDB, nicht im Cache.
 
-const CACHE_NAME = 'kochbuch-shell-v48';
+// This name identifies the cache bucket, not an app release. The worker
+// refreshes cached files from the network on each request while online.
+const CACHE_NAME = 'kochbuch-shell';
 const SHELL_FILES = [
   './',
   './index.html',
@@ -68,7 +70,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+      Promise.all(keys.filter(k => k.startsWith('kochbuch-shell-') && k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
@@ -83,14 +85,21 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  event.respondWith(
-    caches.match(req).then(cached => {
+  event.respondWith((async () => {
+    const cached = await caches.match(req);
+    try {
+      const response = await fetch(req);
+      if (response.ok && response.type !== 'opaque') {
+        const cache = await caches.open(CACHE_NAME);
+        await cache.put(req, response.clone());
+      }
+      return response;
+    } catch {
       if (cached) return cached;
-      return fetch(req).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
-        return res;
-      }).catch(() => caches.match('./index.html'));
-    })
-  );
+      if (req.mode === 'navigate') {
+        return (await caches.match('./index.html')) || Response.error();
+      }
+      return Response.error();
+    }
+  })());
 });
