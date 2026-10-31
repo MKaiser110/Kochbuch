@@ -23,13 +23,6 @@ export function extractFromReaderText(text, sourceUrl) {
   }
   if (isEditorialHeadline(r.title)) r.title = titleFromSourceUrl(sourceUrl) || r.title;
   r.source = sourceUrl || null;
-  const afterTitle = lines.slice(lines.indexOf(titleLine) + 1);
-  const sectionStart = afterTitle.findIndex(line => ['ingredients', 'steps', 'ignore'].includes(sectionHeading(line)));
-  const descriptionLines = sectionStart < 0 ? afterTitle : afterTitle.slice(0, sectionStart);
-  r.description = descriptionLines.find(line => line.length > 40 && !/^#|!\[|\[[^\]]+\]\(/.test(line)
-    && !/^["“].*["”]\s*[—–-]/.test(line)
-    && !/^(?:url source|markdown content|title|published(?: time)?|updated(?: time)?|author|image|source|copyright):/i.test(line)) || '';
-
   const ingredients = [];
   const steps = [];
   let section = null;
@@ -47,7 +40,7 @@ export function extractFromReaderText(text, sourceUrl) {
     const servings = line.match(/(?:für\s*)?(\d{1,3})\s*(?:portionen|personen|servings?)/i)
       || line.match(/(?:portionen|personen|servings?)\s*[:\-]?\s*(\d{1,3})/i);
     if (servings) { r.servingsBase = Number(servings[1]); r.servingsKnown = true; }
-    const time = line.match(/(?:prep|cook|total|gesamt|zubereitung)[^\d]{0,16}(\d{1,3})\s*(?:min(?:uten?)?|hours?|stunden?)/i);
+    const time = line.match(/(?:total|gesamt(?:zeit)?)[^\d]{0,16}(\d{1,3})\s*(?:min(?:uten?)?|hours?|stunden?)/i);
     if (time) r.prepTime = Number(time[1]) * (/hour|stund/i.test(line) ? 60 : 1);
 
     const item = line.replace(/^[-*+]\s+/, '').replace(/^\d+[.)]\s+/, '').replace(/^\[x\]\s*/i, '')

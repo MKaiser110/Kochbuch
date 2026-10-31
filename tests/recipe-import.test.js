@@ -28,7 +28,11 @@ test('normalizes imported ingredients and removes exact duplicates only', () => 
   ]);
   assert.deepEqual(normalizeSteps(['Teig gut verrühren. ', 'Teig gut verrühren.', 'Bei 180 Grad goldbraun backen.', 'I made it']), ['Teig gut verrühren.', 'Bei 180 Grad goldbraun backen.']);
   assert.deepEqual(normalizeSteps(['Soße abschmecken. ![![Image 72](https://example.com/pixel.png)](javascript:;)']), ['Soße abschmecken.']);
-  assert.equal(normalizeImportedRecipe({ description: '![Pixel](https://example.com/p.gif)[](https://example.com/social)' }).description, '');
+  const normalized = normalizeImportedRecipe({ description: 'unwanted', cuisine: 'unwanted', cookTime: 20, totalTime: 30 });
+  assert.equal('description' in normalized, false);
+  assert.equal('cuisine' in normalized, false);
+  assert.equal('cookTime' in normalized, false);
+  assert.equal('totalTime' in normalized, false);
 });
 
 test('drafts a structured OCR recipe from headed sections without inventing steps', () => {
@@ -43,7 +47,7 @@ test('OCR recognizes servings and total time stated inline', () => {
   const draft = draftRecipeFromOcrText('Kartoffelsuppe\nFür 4 Portionen · Gesamtzeit 35 Min.\nZutaten\n500 g Kartoffeln\n1 Zwiebel\nZubereitung\nZwiebel würfeln und anbraten.\nKartoffeln kochen und pürieren.');
   assert.equal(draft.servingsBase, 4);
   assert.equal(draft.servingsKnown, true);
-  assert.equal(draft.totalTime, 35);
+  assert.equal(draft.prepTime, 35);
 });
 
 test('retains unquantified ingredient wording from OCR', () => {
@@ -58,7 +62,7 @@ test('reader fallback keeps servings, drops UI noise, and requires review', () =
   assert.equal(recipe.ingredients.length, 2);
   assert.equal(recipe.steps.length, 2);
   assert.equal(recipe.reviewRequired, true);
-  assert.equal(recipe.description, '');
+  assert.equal('description' in recipe, false);
 });
 
 test('reader fallback drops ingredient navigation and cleans checkbox and image markup', () => {
@@ -74,7 +78,7 @@ test('reader fallback cleans editorial recipe pages with bold quantities and ste
   assert.equal(recipe.steps.length, 3);
   assert.equal(recipe.steps[0].startsWith('In a large pot'), true);
   assert.equal(recipe.steps.some(step => /I made it|PHOTO:/i.test(step)), false);
-  assert.equal(recipe.description, '');
+  assert.equal('description' in recipe, false);
 });
 
 test('parses ISO durations with hours and days', () => {

@@ -94,8 +94,7 @@ export function draftRecipeFromOcrText(text) {
     const time = line.match(/(?:gesamtzeit|zubereitungszeit|prep(?:aration)?\s*time|total\s*time)\s*[:\-]?\s*(\d+)\s*(?:min(?:uten?)?|hours?|stunden?)?/i);
     if (time) {
       const minutes = Number(time[1]) * (/hour|stund/i.test(line) ? 60 : 1);
-      if (/gesamt|total/i.test(line)) recipe.totalTime = minutes;
-      else recipe.prepTime = minutes;
+      if (/gesamt|total/i.test(line)) recipe.prepTime = minutes;
     }
     if (isMetadataLine(line)) continue;
     const item = line.replace(/^\d{1,2}[.)]\s*/, '').trim();
@@ -113,7 +112,6 @@ export function draftRecipeFromOcrText(text) {
     recipe.ingredients = inferred.ingredients;
   }
   recipe.steps = sections.steps.length ? sections.steps : inferred.steps;
-  recipe.description = sections.description.join(' ');
   recipe.importWarnings = [];
   if (!recipe.ingredients.length) recipe.importWarnings.push('Zutatenliste nicht eindeutig erkannt');
   if (!recipe.steps.length) recipe.importWarnings.push('Zubereitung nicht eindeutig erkannt');

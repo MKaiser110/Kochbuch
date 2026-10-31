@@ -6,7 +6,7 @@ import { syncAdapter } from './sync-adapter.js';
 import { migrateRecipe, normalizeTags, stripLegacyFields } from './recipe-model.js';
 
 const DB_NAME = 'kochbuch';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE = 'recipes';
 
 let dbPromise = null;
@@ -15,12 +15,25 @@ function openDB() {
   if (dbPromise) return dbPromise;
   dbPromise = new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = () => {
+    req.onupgradeneeded = event => {
       const db = req.result;
+      let store;
       if (!db.objectStoreNames.contains(STORE)) {
-        const store = db.createObjectStore(STORE, { keyPath: 'id' });
+        store = db.createObjectStore(STORE, { keyPath: 'id' });
         store.createIndex('category', 'category', { unique: false });
         store.createIndex('title', 'title', { unique: false });
+      } else {
+        store = req.transaction.objectStore(STORE);
+      }
+      if (event.oldVersion < 2) {
+        const cursorRequest = store.openCursor();
+        cursorRequest.onsuccess = () => {
+          const cursor = cursorRequest.result;
+          if (!cursor) return;
+          const recipe = migrateRecipe(cursor.value);
+          cursor.update(recipe);
+          cursor.continue();
+        };
       }
     };
     req.onsuccess = () => resolve(req.result);

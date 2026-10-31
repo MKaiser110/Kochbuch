@@ -1,7 +1,7 @@
 // recipe-form.js — Formular zum Anlegen und Bearbeiten eines Rezepts.
 
 import { getAllRecipes, getRecipe, saveRecipe, getAllTags } from '../core/db.js';
-import { blankRecipe, parseTagInput, findDuplicate, clampRating } from '../core/recipe-model.js';
+import { blankRecipe, parseTagInput, findDuplicate } from '../core/recipe-model.js';
 import { imageFileToDataUrl } from '../services/image-utils.js';
 import { takeFormDraft } from '../state.js';
 import { appRoot, mountTemplate, setPageTitle, makeChip, escapeHtml } from '../utils/dom.js';
@@ -45,15 +45,7 @@ function fillBasicFields(form, recipe) {
   form.elements.tags.value = (recipe.tags || []).join(', ');
   form.servings.value = recipe.servingsBase || 4;
   form.prepTime.value = recipe.prepTime || '';
-  form.elements.description.value = recipe.description || '';
-  form.elements.cookTime.value = recipe.cookTime || '';
-  form.elements.totalTime.value = recipe.totalTime || '';
-  form.elements.difficulty.value = recipe.difficulty || '';
-  form.elements.cuisine.value = recipe.cuisine || '';
-  form.elements.nutrition.value = recipe.nutrition ? JSON.stringify(recipe.nutrition) : '';
   form.source.value = recipe.source || '';
-  form.favorite.checked = Boolean(recipe.favorite);
-  form.rating.value = String(Number(recipe.rating) || 0);
   form.notes.value = recipe.notes || '';
 }
 
@@ -162,29 +154,15 @@ function buildUpdatedRecipe(form, recipe, imageDataUrl, { ingredientRows, stepRo
     ...recipe,
     title: fd.get('title').trim(),
     tags: parseTagInput(fd.get('tags')),
-    favorite: Boolean(fd.get('favorite')),
-    rating: clampRating(fd.get('rating')),
     notes: String(fd.get('notes') || '').trim(),
     servingsBase: parseInt(fd.get('servings'), 10) || 1,
     prepTime: fd.get('prepTime') ? parseInt(fd.get('prepTime'), 10) : null,
-    description: String(fd.get('description') || '').trim(),
-    cookTime: fd.get('cookTime') ? parseInt(fd.get('cookTime'), 10) : null,
-    totalTime: fd.get('totalTime') ? parseInt(fd.get('totalTime'), 10) : null,
     servingsKnown: true,
-    difficulty: String(fd.get('difficulty') || '').trim(),
-    cuisine: String(fd.get('cuisine') || '').trim(),
-    nutrition: parseNutrition(fd.get('nutrition')),
     source: fd.get('source').trim() || null,
     image: imageDataUrl,
     ingredients: readIngredients(ingredientRows),
     steps: readSteps(stepRows),
   };
-}
-
-function parseNutrition(value) {
-  const text = String(value || '').trim();
-  if (!text) return null;
-  try { return JSON.parse(text); } catch { return { text }; }
 }
 
 /**

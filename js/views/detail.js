@@ -42,12 +42,6 @@ function renderHeader(root, recipe) {
   root.querySelector('.d-meta').textContent = metaParts.join(' · ');
   const extra = root.querySelector('.d-extra');
   const facts = [
-    recipe.description && ['Beschreibung', recipe.description],
-    recipe.cuisine && ['Küche', recipe.cuisine],
-    recipe.difficulty && ['Schwierigkeit', recipe.difficulty],
-    recipe.cookTime && ['Koch-/Backzeit', `${recipe.cookTime} Min.`],
-    recipe.totalTime && ['Gesamtzeit', `${recipe.totalTime} Min.`],
-    recipe.nutrition && ['Nährwerte', typeof recipe.nutrition === 'string' ? recipe.nutrition : JSON.stringify(recipe.nutrition)],
     recipe.reviewRequired && ['Import prüfen', (recipe.importWarnings || []).join('; ') || 'Bitte Zutaten und Zubereitung mit der Quelle vergleichen.'],
   ].filter(Boolean);
   for (const [label, value] of facts) {
@@ -86,7 +80,8 @@ function setupRating(root, recipe) {
   updateRatingState();
   starButtons.forEach(btn => {
     btn.addEventListener('click', async () => {
-      recipe.rating = Number(btn.dataset.value) || 0;
+      const selectedRating = Number(btn.dataset.value) || 0;
+      recipe.rating = selectedRating === Number(recipe.rating) ? 0 : selectedRating;
       await saveRecipe(recipe);
       updateRatingState();
     });

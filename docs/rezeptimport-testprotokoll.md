@@ -45,3 +45,11 @@ Diese Seiten wurden nur inhaltlich geprüft, nicht durch den Kochbuch-Importdial
 Nicht alle unterstützten Anbieter liefern automatisch importierbare Daten. Je nach CORS, Anti-Bot-Schutz und Seitenauszeichnung bleibt der manuelle Einfüge-Fallback erforderlich. Die Ergebnisse sind Entwürfe und müssen bei heuristischer Auslese anhand der Quelle kontrolliert werden. Export/Import, Datenbank-Regressionsabläufe sowie Handschrift, Schräglage und mehrspaltige OCR wurden nicht erneut geprüft.
 
 Der Import nutzt weiterhin Drittanbieter-Proxys als Best-Effort-Fallback. Eingabevalidierung blockiert offensichtliche lokale Ziele und IP-Literale, ist aber kein serverseitiger Schutz gegen DNS-Rebinding oder Proxy-Weiterleitungen zu internen Zielen.
+
+## UI-Verschlankung (31.10.2026)
+
+Auf Wunsch wurden Kurzbeschreibung, Küche/Herkunft, Schwierigkeit, Nährwerte, Koch-/Backzeit und separates Gesamtzeit-Feld aus Formular, Anzeige, Rezeptmodell und Importübernahme entfernt. Importierte `totalTime`-Werte werden im einzigen Zeitfeld „Zubereitungszeit“ gespeichert. Eine IndexedDB-Migration entfernt diese nicht mehr genutzten Felder aus vorhandenen Rezepten; Dateiimporte ignorieren sie ebenfalls.
+
+Favorit und Bewertung bleiben in der normalen Rezeptansicht bedienbar, wurden aber aus dem Formular zum Erstellen und Bearbeiten entfernt. Bearbeiten erhält vorhandene Favoriten- und Bewertungswerte. Ein erneuter Tipp auf dieselbe Sternezahl löscht die Bewertung.
+
+Der Service-Worker-Cache steht jetzt auf `v37`. Die automatisierten Tests wurden nach dieser letzten Änderung nicht ausgeführt.

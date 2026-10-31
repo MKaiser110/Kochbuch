@@ -36,17 +36,11 @@ function searchForRecipes(node) {
 export function mapSchemaOrgToRecipe(data, sourceUrl) {
   const recipe = blankRecipe();
   recipe.title = typeof data.name === 'string' ? data.name.trim() : '';
-  recipe.tags = tagsFromSchema(data.recipeCategory, data.recipeCuisine);
+  recipe.tags = tagsFromSchema(data.recipeCategory);
   const servings = parseServings(data.recipeYield);
   recipe.servingsBase = servings ?? 4;
   recipe.servingsKnown = servings !== null;
-  recipe.prepTime = parseIsoDuration(data.prepTime);
-  recipe.cookTime = parseIsoDuration(data.cookTime);
-  recipe.totalTime = parseIsoDuration(data.totalTime);
-  recipe.description = typeof data.description === 'string' ? data.description : '';
-  recipe.cuisine = Array.isArray(data.recipeCuisine) ? data.recipeCuisine.join(', ') : (data.recipeCuisine || '');
-  recipe.difficulty = data.difficulty || data.educationalLevel || '';
-  recipe.nutrition = data.nutrition && typeof data.nutrition === 'object' ? data.nutrition : null;
+  recipe.prepTime = parseIsoDuration(data.totalTime);
   recipe.source = sourceUrl || null;
   recipe.image = resolveImageUrl(firstOf(imageUrl(data.image)), sourceUrl);
 

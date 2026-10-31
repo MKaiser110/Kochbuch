@@ -1,23 +1,13 @@
 // Gemeinsame Normalisierung für URL- und Bildimporte.
-import { blankRecipe, normalizeTags } from '../../core/recipe-model.js';
+import { blankRecipe, normalizeTags, stripLegacyFields } from '../../core/recipe-model.js';
 import { parseIngredientLine } from './ingredient-parser.js';
 import { isLikelyStep } from './validation.js';
 
 export function normalizeImportedRecipe(input = {}) {
   const recipe = { ...blankRecipe(), ...input };
   recipe.title = cleanText(input.title);
-  recipe.description = cleanText(input.description)
-    .replace(/!?\[[^\]]*\]\([^)]+\)/g, '').trim()
-    .replace(/^[*_~\s]+|[*_~\s]+$/g, '')
-    .replace(/\s+Über\s+\d+\s+Bewertungen?.*$/i, '')
-    .replace(/\s+Mit\s+(?:►|Portionsrechner|Kochbuch|Video-Tipps).*/i, '').trim();
   recipe.tags = normalizeTags(Array.isArray(input.tags) ? input.tags : []);
-  recipe.cuisine = cleanText(input.cuisine);
-  recipe.difficulty = cleanText(input.difficulty);
-  recipe.nutrition = input.nutrition && typeof input.nutrition === 'object' ? input.nutrition : null;
   recipe.prepTime = finiteOrNull(input.prepTime);
-  recipe.cookTime = finiteOrNull(input.cookTime);
-  recipe.totalTime = finiteOrNull(input.totalTime);
   recipe.servingsKnown = Boolean(input.servingsKnown);
   recipe.servingsBase = finiteOrNull(input.servingsBase) || 4;
   recipe.ingredients = normalizeIngredients(input.ingredients);
@@ -27,6 +17,7 @@ export function normalizeImportedRecipe(input = {}) {
     recipe.importWarnings.push('Portionen nicht erkannt');
   }
   recipe.reviewRequired = Boolean(input.reviewRequired || recipe.importWarnings.length);
+  stripLegacyFields(recipe);
   return recipe;
 }
 

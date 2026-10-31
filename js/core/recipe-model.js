@@ -24,12 +24,6 @@ export function blankRecipe() {
     servingsKnown: false,
     ingredients: [],      // [{ name, amount, unit }]
     steps: [],            // [string]
-    description: '',
-    cookTime: null,
-    totalTime: null,
-    difficulty: '',
-    cuisine: '',
-    nutrition: null,
     importWarnings: [],
     reviewRequired: false,
     image: null,          // dataURL oder null
@@ -65,10 +59,16 @@ export function parseTagInput(text) {
   return normalizeTags(String(text || '').split(/[,;]/));
 }
 
-/** Entfernt Felder älterer Formate, die nicht mehr gespeichert werden. */
+/** Entfernt nicht mehr verwendete Rezeptfelder aus importierten/gespeicherten Daten. */
 export function stripLegacyFields(recipe) {
   delete recipe.lastCookedAt;
   delete recipe.category;
+  delete recipe.description;
+  delete recipe.cuisine;
+  delete recipe.difficulty;
+  delete recipe.nutrition;
+  delete recipe.cookTime;
+  delete recipe.totalTime;
 }
 
 /** Migration beim Lesen: ältere Rezepte haben `category` (String) statt `tags` (Array). */

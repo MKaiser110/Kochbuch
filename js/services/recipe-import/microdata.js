@@ -26,16 +26,11 @@ function extractScope(scope, sourceUrl) {
 
   const r = blankRecipe();
   r.title = title;
-  r.tags = tagsFromSchema(getProp('recipeCategory')?.textContent, getProp('recipeCuisine')?.textContent);
+  r.tags = tagsFromSchema(getProp('recipeCategory')?.textContent);
   const servings = parseServings(valueOf(getProp('recipeYield')));
   r.servingsBase = servings ?? 4;
   r.servingsKnown = servings !== null;
-  r.prepTime = parseIsoDuration(valueOf(getProp('prepTime')));
-  r.cookTime = parseIsoDuration(valueOf(getProp('cookTime')));
-  r.totalTime = parseIsoDuration(valueOf(getProp('totalTime')));
-  r.description = valueOf(getProp('description'));
-  r.cuisine = getProp('recipeCuisine')?.textContent.trim() || '';
-  r.difficulty = getProp('difficulty')?.textContent.trim() || '';
+  r.prepTime = parseIsoDuration(valueOf(getProp('totalTime')));
   r.source = sourceUrl || null;
   const imgEl = getProp('image');
   r.image = valueOf(imgEl) || null;
@@ -55,5 +50,5 @@ function extractScope(scope, sourceUrl) {
 
 function recipeCompleteness(recipe) {
   return recipe.ingredients.length * 2 + recipe.steps.length * 3
-    + (recipe.totalTime !== null ? 1 : 0) + (recipe.image ? 1 : 0);
+    + (recipe.prepTime !== null ? 1 : 0) + (recipe.image ? 1 : 0);
 }
