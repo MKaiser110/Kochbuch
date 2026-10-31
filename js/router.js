@@ -36,9 +36,10 @@ function route() {
   const hash = location.hash.slice(1);
   const previousHash = currentHash;
   const restoreOverview = !hash && previousHash?.startsWith('recipe/');
-  if (previousHash === '' && hash.startsWith('recipe/')) overviewScrollY = window.scrollY;
+  const app = document.getElementById('app');
+  if (previousHash === '' && hash.startsWith('recipe/')) overviewScrollY = app.scrollTop;
   currentHash = hash;
-  window.scrollTo(0, 0);
+  app.scrollTop = 0;
   closeSheet();
   startNavigation();
   document.body.classList.toggle('cook-mode', hash.startsWith('cook/'));
@@ -64,6 +65,6 @@ function route() {
     renderEditForm(null);
   } else {
     btnBack.hidden = true;
-    renderOverview().then(() => requestAnimationFrame(() => window.scrollTo(0, restoreOverview ? overviewScrollY : 0)));
+    renderOverview().then(() => requestAnimationFrame(() => { app.scrollTop = restoreOverview ? overviewScrollY : 0; }));
   }
 }
