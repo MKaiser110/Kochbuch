@@ -49,7 +49,8 @@ function setupBottomNavigation() {
 
 function updateHeaderForTab() {
   const shopping = location.hash === '#shopping';
-  document.querySelector('.topbar h1').textContent = shopping ? 'Einkaufsliste' : 'Kochbuch';
+  if (location.hash === '#shopping') document.querySelector('.topbar h1').textContent = 'Einkaufsliste';
+  else if (!location.hash || location.hash === '#') document.querySelector('.topbar h1').textContent = 'Rezepte';
   document.getElementById('btn-add').setAttribute('aria-label', shopping ? 'Produkt hinzufügen' : 'Rezept hinzufügen');
   document.getElementById('btn-data-menu').setAttribute('aria-label', shopping ? 'Produktkatalog verwalten' : 'Rezepte sichern und wiederherstellen');
   const nav = document.querySelector('.shopping-nav');
