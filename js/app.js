@@ -50,7 +50,7 @@ function setupBottomNavigation() {
 function updateHeaderForTab() {
   const shopping = location.hash === '#shopping';
   if (location.hash === '#shopping') document.querySelector('.topbar h1').textContent = 'Einkaufsliste';
-  else if (!location.hash || location.hash === '#') document.querySelector('.topbar h1').textContent = 'Rezepte';
+  else if (!location.hash || location.hash === '#') document.querySelector('.topbar h1').textContent = 'Kochbuch';
   document.getElementById('btn-add').setAttribute('aria-label', shopping ? 'Produkt hinzufügen' : 'Rezept hinzufügen');
   document.getElementById('btn-data-menu').setAttribute('aria-label', shopping ? 'Produktkatalog verwalten' : 'Rezepte sichern und wiederherstellen');
   const nav = document.querySelector('.shopping-nav');
@@ -71,8 +71,8 @@ function setupRecipeShoppingAction() {
     if (!detail || detail.querySelector('.btn-shopping-ingredients')) return;
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'btn-secondary btn-shopping-ingredients';
-    button.textContent = 'Zutaten zur Einkaufsliste';
+    button.className = 'shopping-recipe-action';
+    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path><path d="M4 4h16v16H4z" opacity=".35"></path></svg><span>Auf die Einkaufsliste</span>';
     button.addEventListener('click', () => {
       const recipeId = location.hash.slice('#recipe/'.length);
       getRecipe(recipeId).then(recipe => { if (recipe) chooseRecipeIngredients(recipe.ingredients); });
