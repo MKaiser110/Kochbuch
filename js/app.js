@@ -47,6 +47,11 @@ function disablePageZoom() {
     const now = Date.now();
     if (lastTap && now - lastTap.time < 350
         && Math.hypot(touch.clientX - lastTap.x, touch.clientY - lastTap.y) < 32) {
+      // Interaktive Ziele müssen ihren Click auch bei schnellen Tipps erhalten.
+      if (event.target.closest('button, a, input, select, textarea, [role="button"]')) {
+        lastTap = null;
+        return;
+      }
       if (event.cancelable) event.preventDefault();
       event.stopImmediatePropagation();
       lastTap = null;
