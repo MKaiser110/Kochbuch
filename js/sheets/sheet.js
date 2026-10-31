@@ -21,7 +21,7 @@ export function openSheet(templateId, wire) {
 }
 
 /** Öffnet eine einheitliche Bestätigung und liefert true nur bei Bestätigen. */
-export function confirmSheet({ title, message, confirmLabel = 'Bestätigen', cancelLabel = 'Abbrechen' }) {
+export function confirmSheet({ title, message, confirmLabel = 'Bestätigen', cancelLabel = 'Abbrechen', danger = false }) {
   return new Promise(resolve => {
     let settled = false;
     const finish = confirmed => {
@@ -39,14 +39,15 @@ export function confirmSheet({ title, message, confirmLabel = 'Bestätigen', can
       if (event.target === overlay) finish(false);
     };
 
-    openSheet('tpl-delete-confirm', node => {
+    openSheet('tpl-confirm', node => {
       node.querySelector('h2').textContent = title;
-      node.querySelector('#delete-confirm-message').textContent = message;
-      node.querySelector('#delete-cancel').textContent = cancelLabel;
-      const confirmButton = node.querySelector('#delete-confirm');
+      node.querySelector('#confirm-message').textContent = message;
+      node.querySelector('#confirm-cancel').textContent = cancelLabel;
+      const confirmButton = node.querySelector('#confirm-accept');
+      confirmButton.className = danger ? 'btn-danger' : 'btn-confirm';
       confirmButton.textContent = confirmLabel;
       confirmButton.addEventListener('click', () => finish(true));
-      node.querySelector('#delete-cancel').addEventListener('click', () => finish(false));
+      node.querySelector('#confirm-cancel').addEventListener('click', () => finish(false));
     });
     document.addEventListener('keydown', onKeyDown);
     overlay.addEventListener('click', onBackdropClick);
