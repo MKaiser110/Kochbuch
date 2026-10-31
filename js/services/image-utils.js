@@ -4,6 +4,7 @@
 // Anzeigegröße bleibt jedes Bild im Bereich weniger hundert KB.
 
 export const MAX_IMAGE_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
+export const MAX_IMAGE_DATA_URL_LENGTH = Math.ceil(MAX_IMAGE_FILE_SIZE / 3) * 4 + 256;
 const MAX_DIMENSION = 1600; // px, längste Kante
 const JPEG_QUALITY = 0.8;
 
