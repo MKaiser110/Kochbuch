@@ -4,40 +4,56 @@ import { blankRecipe } from '../../core/recipe-model.js';
 import { parseIngredientLine } from './ingredient-parser.js';
 import { isUsableRecipe, isLikelyIngredient, isLikelyStep } from './validation.js';
 import { tagsFromSchema, parseServings, parseIsoDuration } from './schema-helpers.js';
+import { normalizeImportedRecipe } from './normalize.js';
 
 // Viele ältere/kleinere Rezeptseiten nutzen schema.org-Microdata
 // (itemprop-Attribute) statt JSON-LD. Zweite, unabhängige Extraktionsmethode.
 export function extractMicrodata(doc, sourceUrl) {
-  const scope = doc.querySelector('[itemtype*="schema.org/Recipe"]');
-  if (!scope) return null;
+  const scopes = [...doc.querySelectorAll('[itemtype*="schema.org/Recipe"], [itemtype$="/Recipe"]')];
+  const candidates = scopes.map(scope => extractScope(scope, sourceUrl)).filter(Boolean);
+  return candidates.sort((a, b) => recipeCompleteness(b) - recipeCompleteness(a))[0] || null;
+}
 
-  const getProp = (name) => scope.querySelector(`[itemprop="${name}"]`);
-  const getAllProp = (name) => [...scope.querySelectorAll(`[itemprop="${name}"]`)];
+function extractScope(scope, sourceUrl) {
+  const belongsToScope = element => element.closest('[itemtype*="schema.org/Recipe"], [itemtype$="/Recipe"]') === scope;
+  const getAllProp = name => [...scope.querySelectorAll(`[itemprop="${name}"]`)].filter(belongsToScope);
+  const getProp = name => getAllProp(name)[0] || null;
+  const valueOf = element => element?.getAttribute('content') || element?.getAttribute('datetime')
+    || element?.getAttribute('src') || element?.textContent?.trim() || '';
 
-  const title = getProp('name')?.getAttribute('content')
-    || getProp('name')?.textContent.trim() || '';
+  const title = valueOf(getProp('name'));
   if (!title) return null;
 
   const r = blankRecipe();
   r.title = title;
   r.tags = tagsFromSchema(getProp('recipeCategory')?.textContent, getProp('recipeCuisine')?.textContent);
-  r.servingsBase = parseServings(getProp('recipeYield')?.textContent
-    || getProp('recipeYield')?.getAttribute('content')) ?? 4;
-  r.prepTime = parseIsoDuration(
-    getProp('totalTime')?.getAttribute('datetime') || getProp('cookTime')?.getAttribute('datetime')
-  ) ?? null;
+  const servings = parseServings(valueOf(getProp('recipeYield')));
+  r.servingsBase = servings ?? 4;
+  r.servingsKnown = servings !== null;
+  r.prepTime = parseIsoDuration(valueOf(getProp('prepTime')));
+  r.cookTime = parseIsoDuration(valueOf(getProp('cookTime')));
+  r.totalTime = parseIsoDuration(valueOf(getProp('totalTime')));
+  r.description = valueOf(getProp('description'));
+  r.cuisine = getProp('recipeCuisine')?.textContent.trim() || '';
+  r.difficulty = getProp('difficulty')?.textContent.trim() || '';
   r.source = sourceUrl || null;
   const imgEl = getProp('image');
-  r.image = imgEl?.getAttribute('src') || imgEl?.getAttribute('content') || null;
+  r.image = valueOf(imgEl) || null;
 
   r.ingredients = getAllProp('recipeIngredient')
-    .map(el => parseIngredientLine(el.textContent.trim()))
+    .map(el => parseIngredientLine(valueOf(el)))
     .filter(ingredient => isLikelyIngredient(ingredient.name));
   r.steps = getAllProp('recipeInstructions')
     .filter(el => !el.querySelector('[itemprop="recipeInstructions"]'))
-    .map(el => el.textContent.trim())
+    .map(el => valueOf(el))
     .filter(isLikelyStep);
 
-  if (!isUsableRecipe(r)) return null;
-  return r;
+  const normalized = normalizeImportedRecipe(r);
+  if (!isUsableRecipe(normalized)) return null;
+  return normalized;
+}
+
+function recipeCompleteness(recipe) {
+  return recipe.ingredients.length * 2 + recipe.steps.length * 3
+    + (recipe.totalTime !== null ? 1 : 0) + (recipe.image ? 1 : 0);
 }

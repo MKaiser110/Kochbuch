@@ -6,6 +6,7 @@ import { extractFromReaderText } from './reader-extract.js';
 
 export { extractFromHtml, extractFromReaderText };
 export { parseIngredientLine } from './ingredient-parser.js';
+export { normalizeImportedRecipe, normalizeIngredients, normalizeSteps } from './normalize.js';
 
 const REQUEST_TIMEOUT_MS = 12000;
 const MAX_RESPONSE_CHARS = 5_000_000;
@@ -52,7 +53,7 @@ export function validateRecipeUrl(input) {
   catch { throw new Error('INVALID_URL'); }
   if (!['http:', 'https:'].includes(parsed.protocol)
       || !parsed.hostname || parsed.username || parsed.password
-      || isLocalHostname(parsed.hostname)) {
+      || isLocalHostname(parsed.hostname) || isIpLiteral(parsed.hostname)) {
     throw new Error('INVALID_URL');
   }
   return parsed.href;
@@ -60,8 +61,9 @@ export function validateRecipeUrl(input) {
 
 function isLocalHostname(hostname) {
   const host = hostname.toLowerCase().replace(/^\[|\]$/g, '');
-  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local')) return true;
-  if (host === '::1' || host === '::' || /^(fc|fd|fe[89ab])/i.test(host)) return true;
+  if (host === 'localhost' || host.endsWith('.localhost') || /\.(local|lan|home|internal|arpa)$/.test(host)) return true;
+  if (!host.includes('.')) return true;
+  if (host === '::1' || host === '::' || /^(fc|fd|fe[89ab]|ff)/i.test(host)) return true;
   const parts = host.split('.');
   if (parts.length === 4 && parts.every(p => /^\d+$/.test(p))) {
     const [a,b] = parts.map(Number);
@@ -70,6 +72,11 @@ function isLocalHostname(hostname) {
       || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168);
   }
   return false;
+}
+
+function isIpLiteral(hostname) {
+  const host = hostname.replace(/^\[|\]$/g, '');
+  return /^\d{1,3}(?:\.\d{1,3}){3}$/.test(host) || host.includes(':');
 }
 
 function safeExtractHtml(html, sourceUrl) {

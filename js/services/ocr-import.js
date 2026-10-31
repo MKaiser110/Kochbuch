@@ -4,15 +4,21 @@
 
 import { blankRecipe } from '../core/recipe-model.js';
 import { parseIngredientLine } from './recipe-import/ingredient-parser.js';
+import { normalizeImportedRecipe } from './recipe-import/normalize.js';
 import { loadImageFromFile } from './image-utils.js';
 
 const OCR_LANG_PATH = 'https://tessdata.projectnaptha.com/4.0.0_best';
 const MAX_IMAGE_DIMENSION = 2800;
 const MIN_IMAGE_DIMENSION = 1600;
+const MAX_IMAGE_FILE_SIZE = 20 * 1024 * 1024;
 
 export async function recognizeImage(file, onProgress) {
+  if (!file || (file.type && !file.type.startsWith('image/')) || file.size > MAX_IMAGE_FILE_SIZE) {
+    throw new Error('INVALID_IMAGE');
+  }
+  if (!globalThis.Tesseract?.createWorker) throw new Error('OCR_UNAVAILABLE');
   const image = await prepareImage(file);
-  const worker = await Tesseract.createWorker('deu', 1, {
+  const worker = await Tesseract.createWorker('deu+eng', 1, {
     langPath: OCR_LANG_PATH,
     logger: m => {
       if (onProgress && m.status === 'recognizing text') {
@@ -23,7 +29,7 @@ export async function recognizeImage(file, onProgress) {
 
   try {
     await worker.setParameters({
-      tessedit_pageseg_mode: '3',
+      tessedit_pageseg_mode: '1',
       preserve_interword_spaces: '1',
     });
     const { data } = await worker.recognize(image);
@@ -72,29 +78,73 @@ async function prepareImage(file) {
  * Rezept-Maske korrigiert.
  */
 export function draftRecipeFromOcrText(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  const r = blankRecipe();
-  if (lines.length === 0) return r;
+  const lines = String(text || '').split(/\r?\n/).map(line => line.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const recipe = blankRecipe();
+  if (!lines.length) return normalizeImportedRecipe(recipe);
 
-  r.title = lines[0];
-
-  const ingredientLineRe = /^[\d½¼¾]/;
-  const ingredients = [];
-  const stepLines = [];
-
-  for (const line of lines.slice(1)) {
-    if (ingredientLineRe.test(line) && line.length < 60) {
-      ingredients.push(parseIngredientLine(line));
-    } else {
-      stepLines.push(line);
+  const sections = { ingredients: [], steps: [], description: [] };
+  let section = 'description';
+  for (const original of lines) {
+    const line = original.replace(/^[-*•]\s*/, '').trim();
+    const heading = ocrSection(line);
+    if (heading) { section = heading; continue; }
+    const servings = line.match(/(?:für\s*|makes?\s*|serves?\s*)?(\d{1,3})\s*(?:portionen|personen|servings?|yield)/i)
+      || line.match(/(?:portionen|personen|servings?|yield)\s*[:\-]?\s*(\d{1,3})/i);
+    if (servings) { recipe.servingsBase = Number(servings[1]); recipe.servingsKnown = true; }
+    const time = line.match(/(?:gesamtzeit|zubereitungszeit|prep(?:aration)?\s*time|total\s*time)\s*[:\-]?\s*(\d+)\s*(?:min(?:uten?)?|hours?|stunden?)?/i);
+    if (time) {
+      const minutes = Number(time[1]) * (/hour|stund/i.test(line) ? 60 : 1);
+      if (/gesamt|total/i.test(line)) recipe.totalTime = minutes;
+      else recipe.prepTime = minutes;
     }
+    if (isMetadataLine(line)) continue;
+    const item = line.replace(/^\d{1,2}[.)]\s*/, '').trim();
+    if (!item) continue;
+    if (section === 'ingredients') sections.ingredients.push(item);
+    else if (section === 'steps') sections.steps.push(item);
+    else sections.description.push(item);
   }
 
-  r.ingredients = ingredients;
-  // Zubereitungstext zu Schritten zusammenfassen (an Satzenden trennen)
-  const joined = stepLines.join(' ');
-  r.steps = joined.split(/(?<=[.!?])\s+(?=[A-ZÄÖÜ])/).map(s => s.trim()).filter(Boolean);
-  if (r.steps.length === 0 && stepLines.length) r.steps = stepLines;
+  recipe.title = sections.description.shift() || lines[0];
+  recipe.ingredients = sections.ingredients.map(parseIngredientLine).filter(item => item.name);
+  let inferred = { ingredients: [], steps: [] };
+  if (!recipe.ingredients.length) {
+    inferred = inferSteps(sections.description);
+    recipe.ingredients = inferred.ingredients;
+  }
+  recipe.steps = sections.steps.length ? sections.steps : inferred.steps;
+  recipe.description = sections.description.join(' ');
+  recipe.importWarnings = [];
+  if (!recipe.ingredients.length) recipe.importWarnings.push('Zutatenliste nicht eindeutig erkannt');
+  if (!recipe.steps.length) recipe.importWarnings.push('Zubereitung nicht eindeutig erkannt');
+  recipe.reviewRequired = true;
+  return normalizeImportedRecipe(recipe);
+}
 
-  return r;
+function ocrSection(line) {
+  const value = line.replace(/^#+\s*/, '').replace(/[:：]$/, '').toLocaleLowerCase('de');
+  if (/^(zutaten|ingredients|was du brauchst|einkaufsliste)(\b|\s)/.test(value)) return 'ingredients';
+  if (/^(zubereitung|anleitung|so geht'?s|schritte|instructions?|directions?|method|preparation)(\b|\s)/.test(value)) return 'steps';
+  if (/^(notizen|tipps|nährwerte|naehrwerte|nutrition|variationen|aufbewahrung|quelle)(\b|\s)/.test(value)) return 'ignore';
+  return null;
+}
+
+function isMetadataLine(line) {
+  return /(?:gesamtzeit|zubereitungszeit|prep(?:aration)?\s*time|total\s*time|portionen|personen|servings|schwierigkeit|difficulty)\s*[:\-]?\s*\d+/i.test(line)
+    || /(?:für\s*|makes?\s*|serves?\s*)\d{1,3}\s*(?:portionen|personen|servings?)/i.test(line);
+}
+
+function inferSteps(lines) {
+  const ingredientPattern = /^(?:[≈~]?\s*)?(?:\d|½|¼|¾|⅓|⅔|⅛|⅜|⅝|⅞|eine?\s+prise|nach bedarf|etwas\b)/i;
+  const ingredients = [];
+  const steps = [];
+  for (const line of lines) {
+    if (ingredientPattern.test(line) && line.length < 100) ingredients.push(parseIngredientLine(line));
+    else if (/\b(mischen|zugeben|hinzufügen|erhitzen|backen|kochen|schneiden|braten|rühren|servieren|mix|add|bake|cook|stir|serve)\b/i.test(line)) steps.push(line);
+    else if (!ingredients.length) steps.push(line);
+  }
+  return {
+    ingredients,
+    steps: steps.map(line => line.replace(/^(?:zubereitung|anleitung)\s*[:\-]?\s*/i, '')).filter(Boolean),
+  };
 }

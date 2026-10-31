@@ -4,6 +4,7 @@ import { blankRecipe } from '../../core/recipe-model.js';
 import { parseIngredientLine } from './ingredient-parser.js';
 import { isLikelyIngredient, isLikelyStep } from './validation.js';
 import { tagsFromSchema, firstOf, imageUrl, parseServings, parseIsoDuration, flattenInstructions } from './schema-helpers.js';
+import { normalizeImportedRecipe } from './normalize.js';
 
 export function findLdJsonRecipes(doc) {
   const scripts = [...doc.querySelectorAll('script[type="application/ld+json"]')];
@@ -33,25 +34,33 @@ function searchForRecipes(node) {
 }
 
 export function mapSchemaOrgToRecipe(data, sourceUrl) {
-  const r = blankRecipe();
-  r.title = typeof data.name === 'string' ? data.name.trim() : '';
-  r.tags = tagsFromSchema(data.recipeCategory, data.recipeCuisine);
-  r.servingsBase = parseServings(data.recipeYield) ?? 4;
-  r.prepTime = parseIsoDuration(data.totalTime || data.cookTime) ?? null;
-  r.source = sourceUrl || null;
-  r.image = resolveImageUrl(firstOf(imageUrl(data.image)), sourceUrl);
+  const recipe = blankRecipe();
+  recipe.title = typeof data.name === 'string' ? data.name.trim() : '';
+  recipe.tags = tagsFromSchema(data.recipeCategory, data.recipeCuisine);
+  const servings = parseServings(data.recipeYield);
+  recipe.servingsBase = servings ?? 4;
+  recipe.servingsKnown = servings !== null;
+  recipe.prepTime = parseIsoDuration(data.prepTime);
+  recipe.cookTime = parseIsoDuration(data.cookTime);
+  recipe.totalTime = parseIsoDuration(data.totalTime);
+  recipe.description = typeof data.description === 'string' ? data.description : '';
+  recipe.cuisine = Array.isArray(data.recipeCuisine) ? data.recipeCuisine.join(', ') : (data.recipeCuisine || '');
+  recipe.difficulty = data.difficulty || data.educationalLevel || '';
+  recipe.nutrition = data.nutrition && typeof data.nutrition === 'object' ? data.nutrition : null;
+  recipe.source = sourceUrl || null;
+  recipe.image = resolveImageUrl(firstOf(imageUrl(data.image)), sourceUrl);
 
   const rawIngredients = data.recipeIngredient || data.ingredients || [];
-  r.ingredients = (Array.isArray(rawIngredients) ? rawIngredients : [rawIngredients])
+  recipe.ingredients = (Array.isArray(rawIngredients) ? rawIngredients : [rawIngredients])
     .map(item => typeof item === 'string' ? item : item?.name || item?.text || '')
     .filter(item => typeof item === 'string' && item.trim())
     .map(parseIngredientLine)
     .filter(ingredient => isLikelyIngredient(ingredient.name));
 
   const instructions = data.recipeInstructions || data.instructions;
-  r.steps = flattenInstructions(instructions).map(step => String(step).trim()).filter(isLikelyStep);
+  recipe.steps = flattenInstructions(instructions).map(step => String(step).trim()).filter(isLikelyStep);
 
-  return r;
+  return normalizeImportedRecipe(recipe);
 }
 
 function resolveImageUrl(value, sourceUrl) {

@@ -4,12 +4,22 @@ const UNITS = new Set([
   'stk','stück','stücke','prise','prisen','bund','dose','dosen','pck','päckchen',
   'packung','packungen','zehe','zehen','scheibe','scheiben','blatt','blätter',
   'becher','tasse','tassen','glas','gläser','würfel','zweig','zweige','spritzer',
-  'messerspitze','msp','cm','liter'
+  'messerspitze','msp','cm','liter','tbsp','tsp','tablespoon','tablespoons',
+  'teaspoon','teaspoons','cup','cups','pound','pounds','lb','lbs','oz','ounce',
+  'ounces','pinch','pinches','clove','cloves'
 ]);
 
 export function parseIngredientLine(line) {
   const text = String(line ?? '').replace(/\s+/g, ' ').trim();
   if (!text) return { amount: null, unit: null, name: '' };
+  const pinch = text.match(/^(?:eine?\s+)?(prise|messerspitze)\s+(.+)$/i);
+  if (pinch) return { amount: 1, unit: pinch[1].toLocaleLowerCase('de'), name: pinch[2].trim() };
+  const qualitative = text.match(/^(etwas|nach bedarf|nach belieben|optional)\s+(.+)$/i);
+  if (qualitative) return { amount: null, unit: qualitative[1].toLocaleLowerCase('de'), name: qualitative[2].trim() };
+  const taste = text.match(/^(.+?)\s+to taste$/i);
+  if (taste) return { amount: null, unit: 'to taste', name: taste[1].trim() };
+  const pinchEn = text.match(/^a pinch of\s+(.+)$/i);
+  if (pinchEn) return { amount: 1, unit: 'pinch', name: pinchEn[1].trim() };
 
   const match = text.match(/^([≈~]?)((?:\d+\s+)?\d+(?:[.,]\d+)?(?:\s*\/\s*\d+)?|\d+\/\d+|[½⅓⅔¼¾⅛⅜⅝⅞])\s*([\p{L}.]+)?\s+(.+)$/u);
   if (!match) return { amount: null, unit: null, name: text };

@@ -40,6 +40,24 @@ function renderHeader(root, recipe) {
   const metaParts = [...recipe.tags];
   if (recipe.prepTime) metaParts.push(`${recipe.prepTime} Min.`);
   root.querySelector('.d-meta').textContent = metaParts.join(' · ');
+  const extra = root.querySelector('.d-extra');
+  const facts = [
+    recipe.description && ['Beschreibung', recipe.description],
+    recipe.cuisine && ['Küche', recipe.cuisine],
+    recipe.difficulty && ['Schwierigkeit', recipe.difficulty],
+    recipe.cookTime && ['Koch-/Backzeit', `${recipe.cookTime} Min.`],
+    recipe.totalTime && ['Gesamtzeit', `${recipe.totalTime} Min.`],
+    recipe.nutrition && ['Nährwerte', typeof recipe.nutrition === 'string' ? recipe.nutrition : JSON.stringify(recipe.nutrition)],
+    recipe.reviewRequired && ['Import prüfen', (recipe.importWarnings || []).join('; ') || 'Bitte Zutaten und Zubereitung mit der Quelle vergleichen.'],
+  ].filter(Boolean);
+  for (const [label, value] of facts) {
+    const p = document.createElement('p');
+    const strong = document.createElement('strong');
+    strong.textContent = `${label}: `;
+    p.append(strong, document.createTextNode(value));
+    extra.appendChild(p);
+  }
+  extra.hidden = !facts.length;
 }
 
 function setupFavorite(root, recipe) {

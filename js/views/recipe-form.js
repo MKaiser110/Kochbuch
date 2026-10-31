@@ -20,6 +20,11 @@ export async function renderEditForm(id) {
   mountTemplate('tpl-recipe-form');
 
   const form = appRoot.querySelector('#recipe-form');
+  const reviewNotice = form.querySelector('#import-review-notice');
+  if (recipe.reviewRequired) {
+    reviewNotice.hidden = false;
+    reviewNotice.textContent = (recipe.importWarnings || []).join('. ') || 'Bitte prüfe alle importierten Angaben anhand der Quelle.';
+  }
   fillBasicFields(form, recipe);
   await setupTagSuggestions(form.elements.tags);
   const image = setupImageField(form, recipe);
@@ -40,6 +45,12 @@ function fillBasicFields(form, recipe) {
   form.elements.tags.value = (recipe.tags || []).join(', ');
   form.servings.value = recipe.servingsBase || 4;
   form.prepTime.value = recipe.prepTime || '';
+  form.elements.description.value = recipe.description || '';
+  form.elements.cookTime.value = recipe.cookTime || '';
+  form.elements.totalTime.value = recipe.totalTime || '';
+  form.elements.difficulty.value = recipe.difficulty || '';
+  form.elements.cuisine.value = recipe.cuisine || '';
+  form.elements.nutrition.value = recipe.nutrition ? JSON.stringify(recipe.nutrition) : '';
   form.source.value = recipe.source || '';
   form.favorite.checked = Boolean(recipe.favorite);
   form.rating.value = String(Number(recipe.rating) || 0);
@@ -156,11 +167,24 @@ function buildUpdatedRecipe(form, recipe, imageDataUrl, { ingredientRows, stepRo
     notes: String(fd.get('notes') || '').trim(),
     servingsBase: parseInt(fd.get('servings'), 10) || 1,
     prepTime: fd.get('prepTime') ? parseInt(fd.get('prepTime'), 10) : null,
+    description: String(fd.get('description') || '').trim(),
+    cookTime: fd.get('cookTime') ? parseInt(fd.get('cookTime'), 10) : null,
+    totalTime: fd.get('totalTime') ? parseInt(fd.get('totalTime'), 10) : null,
+    servingsKnown: true,
+    difficulty: String(fd.get('difficulty') || '').trim(),
+    cuisine: String(fd.get('cuisine') || '').trim(),
+    nutrition: parseNutrition(fd.get('nutrition')),
     source: fd.get('source').trim() || null,
     image: imageDataUrl,
     ingredients: readIngredients(ingredientRows),
     steps: readSteps(stepRows),
   };
+}
+
+function parseNutrition(value) {
+  const text = String(value || '').trim();
+  if (!text) return null;
+  try { return JSON.parse(text); } catch { return { text }; }
 }
 
 /**

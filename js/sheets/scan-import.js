@@ -29,8 +29,14 @@ export function openScanImport() {
         recipe.image = await imageFileToDataUrl(file);
         closeSheet();
         openFormWithDraft(recipe);
-      } catch {
-        status.textContent = 'Texterkennung fehlgeschlagen. Bitte erneut versuchen oder manuell eingeben.';
+      } catch (error) {
+        if (error?.message === 'INVALID_IMAGE') {
+          status.textContent = 'Bitte ein Bild bis maximal 20 MB auswählen.';
+        } else if (error?.message === 'OCR_UNAVAILABLE') {
+          status.textContent = 'Texterkennung ist nicht verfügbar. Prüfe die Internetverbindung und versuche es erneut.';
+        } else {
+          status.textContent = 'Texterkennung fehlgeschlagen. Bitte erneut versuchen oder manuell eingeben.';
+        }
       }
     });
   });

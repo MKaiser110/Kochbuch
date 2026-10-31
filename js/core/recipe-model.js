@@ -21,8 +21,17 @@ export function blankRecipe() {
     rating: 0,
     notes: '',
     servingsBase: 4,
+    servingsKnown: false,
     ingredients: [],      // [{ name, amount, unit }]
     steps: [],            // [string]
+    description: '',
+    cookTime: null,
+    totalTime: null,
+    difficulty: '',
+    cuisine: '',
+    nutrition: null,
+    importWarnings: [],
+    reviewRequired: false,
     image: null,          // dataURL oder null
     prepTime: null,       // Minuten oder null
     source: null,         // URL oder null
