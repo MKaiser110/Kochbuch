@@ -3,6 +3,7 @@
 import { getAllRecipes, getRecipe, saveRecipe, getAllTags } from '../core/db.js';
 import { blankRecipe, parseTagInput, findDuplicate } from '../core/recipe-model.js';
 import { imageFileToDataUrl } from '../services/image-utils.js';
+import { confirmSheet } from '../sheets/sheet.js';
 import { takeFormDraft } from '../state.js';
 import { appRoot, mountTemplate, setPageTitle, makeChip, escapeHtml } from '../utils/dom.js';
 
@@ -76,15 +77,28 @@ async function setupTagSuggestions(tagsInput) {
 function setupImageField(form, recipe) {
   let imageDataUrl = recipe.image || null;
   const imagePreview = document.getElementById('image-preview');
+  const imageStatus = document.getElementById('image-status');
   function renderImagePreview() {
-    imagePreview.innerHTML = imageDataUrl ? `<img src="${imageDataUrl}">` : '';
+    imagePreview.replaceChildren();
+    if (!imageDataUrl) return;
+    const image = document.createElement('img');
+    image.src = imageDataUrl;
+    image.alt = 'Rezeptbild';
+    imagePreview.appendChild(image);
   }
   renderImagePreview();
-  form.image.addEventListener('change', async () => {
-    const file = form.image.files[0];
-    if (file) {
+  form.elements.image.addEventListener('change', async () => {
+    const file = form.elements.image.files[0];
+    if (!file) return;
+    imageStatus.textContent = 'Bild wird verarbeitet …';
+    try {
       imageDataUrl = await imageFileToDataUrl(file);
       renderImagePreview();
+      imageStatus.textContent = 'Bild hinzugefügt.';
+    } catch (error) {
+      imageStatus.textContent = error?.message === 'IMAGE_TOO_LARGE'
+        ? 'Das Bild ist größer als 15 MB. Bitte wähle ein kleineres Bild.'
+        : 'Das Bild konnte nicht verarbeitet werden. Bitte wähle ein anderes Bild.';
     }
   });
   return { get: () => imageDataUrl };
@@ -192,5 +206,9 @@ async function confirmDuplicate(updated, original, id) {
   const why = dup.reason === 'source'
     ? `Dieses Rezept hat dieselbe Quelle wie „${dup.recipe.title}“.`
     : `Ein Rezept mit dem Titel „${dup.recipe.title}“ gibt es schon.`;
-  return confirm(`${why}\n\nTrotzdem speichern?`);
+  return confirmSheet({
+    title: 'Mögliches Duplikat',
+    message: why,
+    confirmLabel: 'Trotzdem speichern',
+  });
 }
