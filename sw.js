@@ -49,6 +49,8 @@ async function collectAppFiles() {
       for (const match of source.matchAll(imports)) add(match[1] || match[2], url);
       const localUrls = /\bnew\s+URL\(\s*["']([^"']+)["']/g;
       for (const match of source.matchAll(localUrls)) add(match[1], url);
+      const scriptSources = /\bscript\.src\s*=\s*["']([^"']+)["']/g;
+      for (const match of source.matchAll(scriptSources)) add(match[1], root);
     } else if (type === 'css') {
       const assets = /url\(\s*["']?([^"')]+)["']?\s*\)/g;
       for (const match of source.matchAll(assets)) add(match[1].trim(), url);
