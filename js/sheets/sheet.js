@@ -20,6 +20,39 @@ export function openSheet(templateId, wire) {
   wire(overlay);
 }
 
+/** Öffnet eine einheitliche Bestätigung und liefert true nur bei Bestätigen. */
+export function confirmSheet({ title, message, confirmLabel = 'Bestätigen', cancelLabel = 'Abbrechen' }) {
+  return new Promise(resolve => {
+    let settled = false;
+    const finish = confirmed => {
+      if (settled) return;
+      settled = true;
+      document.removeEventListener('keydown', onKeyDown);
+      overlay.removeEventListener('click', onBackdropClick);
+      closeSheet();
+      resolve(confirmed);
+    };
+    const onKeyDown = event => {
+      if (event.key === 'Escape') finish(false);
+    };
+    const onBackdropClick = event => {
+      if (event.target === overlay) finish(false);
+    };
+
+    openSheet('tpl-delete-confirm', node => {
+      node.querySelector('h2').textContent = title;
+      node.querySelector('#delete-confirm-message').textContent = message;
+      node.querySelector('#delete-cancel').textContent = cancelLabel;
+      const confirmButton = node.querySelector('#delete-confirm');
+      confirmButton.textContent = confirmLabel;
+      confirmButton.addEventListener('click', () => finish(true));
+      node.querySelector('#delete-cancel').addEventListener('click', () => finish(false));
+    });
+    document.addEventListener('keydown', onKeyDown);
+    overlay.addEventListener('click', onBackdropClick);
+  });
+}
+
 export function closeSheet() {
   releaseVisualViewport();
   overlay.hidden = true;
