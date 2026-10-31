@@ -1,0 +1,48 @@
+/* form.css — Formularfelder, Zutaten-/Schrittzeilen, Sheet-Inhalte (Status, Checkliste, Vorschau). */
+
+.form label { display: block; margin-bottom: 16px; color: var(--ink-soft); font-size: .8rem; font-weight: 550; }
+.form input:not([type="file"]), .form textarea {
+  display: block;
+  width: 100%;
+  min-height: 45px;
+  margin-top: 7px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  outline: none;
+  background-color: var(--surface-soft);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 400;
+}
+/* Zutaten-Suchfeld im Sheet: gleiche Basis wie #search (controls.css), aber
+   mit den Maßen der Formularfelder. */
+#ingredient-filter-search {
+  display: block;
+  min-height: 45px;
+  margin-top: 7px;
+  padding: 10px 12px 10px 40px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  font-weight: 400;
+}
+.form input:focus, .form textarea:focus { border-color: var(--line-strong); background-color: var(--surface); }
+.form textarea { min-height: 72px; resize: vertical; line-height: 1.5; }
+.form h3 { margin: 23px 0 12px; }
+.ing-row, .step-row { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; }
+.ing-row input:not([type="file"]) { min-width: 0; margin-top: 0; padding-inline: 9px; }
+.ing-row input:nth-child(1) { flex: 0 0 74px; }
+.ing-row input:nth-child(2) { flex: 0 0 78px; }
+.ing-row input:nth-child(3) { flex: 1; }
+.step-row textarea { flex: 1; }
+.row-remove { width: 32px; height: 36px; flex: 0 0 auto; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font-size: 1.3rem; cursor: pointer; }
+.row-remove:hover { background: var(--surface-soft); }
+.form-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 22px; }
+.status { min-height: 1.2em; color: var(--ink-soft); font-size: .82rem; line-height: 1.5; }
+.ingredient-checklist { max-height: 48vh; overflow-y: auto; margin: 14px 0; padding: 4px 15px; border: 1px solid var(--line); border-radius: 14px; }
+.ingredient-checklist label { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 1px solid var(--line); color: var(--ink); font-size: .9rem; }
+.ingredient-checklist label:last-child { border-bottom: 0; }
+.hint { color: var(--ink-soft); font-size: .8rem; line-height: 1.55; }
+#scan-preview img, #image-preview img { max-width: 100%; margin-top: 10px; border-radius: 14px; }
+#image-preview img { margin-top: 2px; }
+.tag-suggestions { flex-wrap: wrap; overflow: visible; margin: -5px 0 16px; padding-top: 0; }

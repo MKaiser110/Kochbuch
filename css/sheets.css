@@ -1,0 +1,61 @@
+/* sheets.css — Overlay, Bottom-Sheets und Formular-Container. */
+
+.overlay {
+  position: fixed;
+  z-index: 10;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px 8px 8px;
+  background: rgb(20 22 24 / 30%);
+  backdrop-filter: blur(3px);
+  overscroll-behavior: contain;
+}
+.overlay[hidden] { display: none; }
+.sheet, .form {
+  width: min(100%, 620px);
+  max-height: min(88vh, 820px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding: 24px 22px calc(24px + env(safe-area-inset-bottom));
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 18px 60px rgb(0 0 0 / 12%);
+}
+#recipe-form {
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
+}
+#recipe-form input[type="file"] { max-width: 100%; }
+@supports (height: 100dvh) {
+  .sheet, .form { max-height: min(88dvh, 820px); }
+}
+.overlay .sheet, .overlay .form {
+  max-height: var(--overlay-content-max-height, min(88dvh, 820px));
+}
+.sheet h2 { margin: 0 0 10px; font-size: 1.2rem; font-weight: 650; letter-spacing: -.025em; }
+.sheet-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 50px;
+  margin-bottom: 9px;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface-soft);
+  color: var(--ink);
+  font-size: .92rem;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 150ms ease, border-color 150ms ease;
+}
+.option-icon { width: 20px; height: 20px; flex: 0 0 auto; stroke: var(--ink-soft); stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.6; }
+.sheet-option span { flex: 1; }
+.sheet-option:hover { border-color: var(--line-strong); }
+.sheet-cancel { display: block; width: 100%; min-height: 44px; border: 0; background: transparent; color: var(--ink-soft); font-size: .9rem; cursor: pointer; }
