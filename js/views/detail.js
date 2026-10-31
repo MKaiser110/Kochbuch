@@ -212,6 +212,7 @@ function setupEditAndDelete(root, id, recipe) {
       title: 'Rezept löschen?',
       message: `„${recipe.title}“ wirklich löschen?`,
       confirmLabel: 'Rezept löschen',
+      danger: true,
     });
     if (!confirmed) return;
     await deleteRecipe(id);
