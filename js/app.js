@@ -36,20 +36,23 @@ function setupConnectionStatus() {
   header.insertAdjacentElement('afterend', status);
 
   const update = () => {
-    const connection = navigator.onLine ? 'Online' : 'Offline';
-    status.textContent = navigator.onLine
-      ? `${connection} · Offline-Start ist nach dem Laden des App-Caches möglich`
-      : `${connection} · OCR benötigt zuvor geladene Engine und Sprachdaten; Verfügbarkeit nicht prüfbar`;
+    const onStartScreen = !location.hash || location.hash === '#';
+    status.hidden = navigator.onLine || !onStartScreen;
+    if (!status.hidden) {
+      const ocrUsable = Boolean(globalThis.Tesseract?.createWorker);
+      status.textContent = `Offline · OCR ${ocrUsable ? 'verfügbar' : 'nicht verfügbar'}`;
+    }
   };
   window.addEventListener('online', update);
   window.addEventListener('offline', update);
+  window.addEventListener('hashchange', update);
   update();
 }
 
 function setupSheetGuidance() {
   const overlay = document.getElementById('sheet-overlay');
   const enhance = () => {
-    const dataMenu = overlay.querySelector('.menu-sheet');
+    const dataMenu = overlay.querySelector('#data-export')?.closest('.menu-sheet');
     if (dataMenu && !dataMenu.querySelector('#backup-guidance')) {
       dataMenu.style.height = 'auto';
       const title = dataMenu.querySelector('h2');
@@ -76,25 +79,6 @@ function setupSheetGuidance() {
       }).observe(exportStatus, { childList: true, characterData: true, subtree: true });
     }
 
-    const scanStatus = overlay.querySelector('#scan-status');
-    if (scanStatus && !overlay.querySelector('#scan-ocr-availability')) {
-      const info = document.createElement('p');
-      info.id = 'scan-ocr-availability';
-      info.className = 'hint';
-      const update = () => {
-        if (!navigator.onLine) {
-          info.textContent = 'Offline: Ein Scan klappt nur, wenn Engine und deutsche Sprachdaten bereits verfügbar sind. Das lässt sich vorab nicht zuverlässig prüfen.';
-        } else if (globalThis.Tesseract?.createWorker) {
-          info.textContent = 'Online · OCR-Engine geladen. Die Sprachdaten werden beim Scan geprüft.';
-        } else {
-          info.textContent = 'Online · Beim ersten Scan werden OCR-Engine und Sprachdaten aus dem Internet geladen.';
-        }
-      };
-      window.addEventListener('online', update);
-      window.addEventListener('offline', update);
-      scanStatus.before(info);
-      update();
-    }
   };
   new MutationObserver(enhance).observe(overlay, { childList: true, subtree: true, characterData: true });
   enhance();
