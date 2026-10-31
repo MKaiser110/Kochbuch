@@ -1,0 +1,48 @@
+/* base.css — Farbvariablen (hell/dunkel), Reset, Grundstil, reduzierte Bewegung. */
+
+:root {
+  color-scheme: light dark;
+  --page: #f0f1f1;
+  --surface: #ffffff;
+  --surface-soft: #f5f6f6;
+  --ink: #202122;
+  --ink-soft: #85898d;
+  --line: #eceeef;
+  --line-strong: #dfe2e4;
+  --danger: #b54747;
+  font-size: 15px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #111213;
+    --surface: #1b1c1e;
+    --surface-soft: #25272a;
+    --ink: #f2f3f4;
+    --ink-soft: #a2a6aa;
+    --line: #2c2e31;
+    --line-strong: #3a3d40;
+      --danger: #ef8585;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+button, input, select, textarea { color: inherit; font: inherit; }
+body input, body textarea, body select { font-size: 16px; }
+button { -webkit-tap-highlight-color: transparent; }
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 8px;
+  background: var(--page);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}

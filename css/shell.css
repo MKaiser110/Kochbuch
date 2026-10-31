@@ -1,0 +1,80 @@
+/* shell.css — Kopfzeile (Topbar) und Inhaltsbereich (#app). */
+
+.topbar, #app {
+  width: min(100%, 980px);
+  margin-inline: auto;
+  background: var(--surface);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 76px;
+  padding: calc(env(safe-area-inset-top) + 14px) 22px 12px;
+  border-radius: 26px 26px 0 0;
+}
+
+.brand-mark {
+  display: grid;
+  width: 21px;
+  height: 21px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--ink);
+}
+.brand-mark svg { width: 100%; height: 100%; }
+.brand-mark path, .empty-icon path {
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.topbar h1 {
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.topbar-actions { display: flex; align-items: center; gap: 9px; }
+.topbar-actions .icon-btn { display: grid; }
+.icon-btn {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
+}
+#btn-data-menu { color: var(--ink-soft); }
+#btn-add { width: 42px; height: 42px; background: var(--ink); color: var(--surface); box-shadow: 0 3px 8px rgb(0 0 0 / 12%); }
+.icon-btn svg { width: 21px; height: 21px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+#btn-data-menu svg { width: 20px; height: 20px; fill: currentColor; stroke: none; }
+#btn-add svg { width: 20px; height: 20px; stroke-width: 1.8; }
+.icon-btn:active { transform: scale(.95); }
+.icon-btn:hover { background-color: var(--surface-soft); }
+#btn-add:hover { background-color: var(--ink); }
+#btn-back:not([hidden]) { margin-left: -8px; }
+
+#app {
+  min-height: calc(100dvh - 92px);
+  padding: 8px 22px 36px;
+  border-radius: 0 0 26px 26px;
+}
