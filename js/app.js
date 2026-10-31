@@ -24,17 +24,24 @@ if ('serviceWorker' in navigator) {
 
 function disablePageZoom() {
   let lastTap = null;
+  let touchMoved = false;
 
   document.addEventListener('touchstart', event => {
+    if (event.touches.length === 1) touchMoved = false;
     if (event.touches.length > 1 && event.cancelable) event.preventDefault();
   }, { capture: true, passive: false });
 
   document.addEventListener('touchmove', event => {
+    touchMoved = true;
     lastTap = null;
     if (event.touches.length > 1 && event.cancelable) event.preventDefault();
   }, { capture: true, passive: false });
 
   document.addEventListener('touchend', event => {
+    if (touchMoved) {
+      lastTap = null;
+      return;
+    }
     if (event.changedTouches.length !== 1) return;
     const touch = event.changedTouches[0];
     const now = Date.now();
