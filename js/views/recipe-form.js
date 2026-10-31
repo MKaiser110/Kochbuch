@@ -123,8 +123,11 @@ function setupRows(recipe) {
       <textarea rows="2" name="step-${n}" autocomplete="off" placeholder="Schritt beschreiben…">${escapeHtml(text)}</textarea>
       <button type="button" class="row-remove" aria-label="Entfernen">×</button>
     `;
+    const textarea = row.querySelector('textarea');
+    textarea.addEventListener('input', () => resizeStepField(textarea));
     row.querySelector('.row-remove').addEventListener('click', () => row.remove());
     stepRows.appendChild(row);
+    resizeStepField(textarea);
   }
 
   (recipe.ingredients.length ? recipe.ingredients : [{ amount: '', unit: '', name: '' }]).forEach(addIngredientRow);
@@ -134,6 +137,11 @@ function setupRows(recipe) {
   document.getElementById('add-step-row').addEventListener('click', () => addStepRow());
 
   return { ingredientRows, stepRows };
+}
+
+function resizeStepField(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.max(textarea.scrollHeight, 72) + 'px';
 }
 
 function readIngredients(ingredientRows) {

@@ -32,7 +32,13 @@
 .recipe-form-section + .recipe-form-section { margin-top: 24px; padding-top: 22px; border-top: 1px solid var(--line); }
 .recipe-form-section h3 { margin: 0 0 15px; }
 .recipe-form-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.recipe-form-fields label { min-width: 0; }
+.recipe-form-fields label {
+  display: grid;
+  min-width: 0;
+  grid-template-rows: 2.7em auto;
+  align-content: start;
+}
+.recipe-form-fields label > span { display: block; line-height: 1.25; overflow-wrap: anywhere; }
 #recipe-form .recipe-form-actions {
   position: sticky;
   bottom: 0;
@@ -57,7 +63,7 @@
 .ing-row input:nth-child(1) { flex: 0 0 74px; }
 .ing-row input:nth-child(2) { flex: 0 0 78px; }
 .ing-row input:nth-child(3) { flex: 1; }
-.step-row textarea { flex: 1; }
+.step-row textarea { flex: 1; min-width: 0; overflow-y: hidden; resize: none; }
 .row-remove { width: 32px; height: 36px; flex: 0 0 auto; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font-size: 1.3rem; cursor: pointer; }
 .row-remove:hover { background: var(--surface-soft); }
 .form-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 22px; }
