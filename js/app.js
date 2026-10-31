@@ -38,7 +38,7 @@ function setupConnectionStatus() {
   const update = () => {
     const connection = navigator.onLine ? 'Online' : 'Offline';
     status.textContent = navigator.onLine
-      ? `${connection} · App-Inhalte sind für Offline-Nutzung eingerichtet`
+      ? `${connection} · Offline-Start ist nach dem Laden des App-Caches möglich`
       : `${connection} · OCR benötigt zuvor geladene Engine und Sprachdaten; Verfügbarkeit nicht prüfbar`;
   };
   window.addEventListener('online', update);
@@ -67,14 +67,13 @@ function setupSheetGuidance() {
       const saved = localStorage.getItem('kochbuch-last-backup-started');
       last.textContent = saved ? `Letzter Export gestartet: ${new Date(saved).toLocaleString('de-DE')}` : 'Noch kein Export auf diesem Gerät gestartet.';
       guidance.after(last);
-      dataMenu.querySelector('#data-status').addEventListener('DOMSubtreeModified', () => {
-        const text = dataMenu.querySelector('#data-status').textContent;
-        if (text.includes('exportiert.')) {
-          const now = new Date().toISOString();
-          localStorage.setItem('kochbuch-last-backup-started', now);
-          last.textContent = `Letzter Export gestartet: ${new Date(now).toLocaleString('de-DE')}`;
-        }
-      });
+      const exportStatus = dataMenu.querySelector('#data-status');
+      new MutationObserver(() => {
+        if (!exportStatus.textContent.includes('exportiert.')) return;
+        const now = new Date().toISOString();
+        localStorage.setItem('kochbuch-last-backup-started', now);
+        last.textContent = `Letzter Export gestartet: ${new Date(now).toLocaleString('de-DE')}`;
+      }).observe(exportStatus, { childList: true, characterData: true, subtree: true });
     }
 
     const scanStatus = overlay.querySelector('#scan-status');
