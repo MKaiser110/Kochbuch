@@ -30,8 +30,10 @@ export function openScanImport() {
         closeSheet();
         openFormWithDraft(recipe);
       } catch (error) {
-        if (error?.message === 'INVALID_IMAGE') {
-          status.textContent = 'Bitte ein Bild bis maximal 20 MB auswählen.';
+        if (error?.message === 'INVALID_IMAGE' || error?.message === 'IMAGE_TOO_LARGE') {
+          status.textContent = 'Bitte ein Bild bis maximal 15 MB auswählen.';
+        } else if (error?.message === 'IMAGE_PROCESSING_FAILED') {
+          status.textContent = 'Das Bild konnte nicht verarbeitet werden. Bitte wähle ein anderes Bild.';
         } else if (error?.message === 'OCR_UNAVAILABLE') {
           status.textContent = 'Texterkennung ist nicht verfügbar. Prüfe die Internetverbindung und versuche es erneut.';
         } else {
