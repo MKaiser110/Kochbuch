@@ -53,3 +53,7 @@ Auf Wunsch wurden Kurzbeschreibung, Küche/Herkunft, Schwierigkeit, Nährwerte, 
 Favorit und Bewertung bleiben in der normalen Rezeptansicht bedienbar, wurden aber aus dem Formular zum Erstellen und Bearbeiten entfernt. Bearbeiten erhält vorhandene Favoriten- und Bewertungswerte. Ein erneuter Tipp auf dieselbe Sternezahl löscht die Bewertung.
 
 Der Service-Worker-Cache steht jetzt auf `v37`. Die automatisierten Tests wurden nach dieser letzten Änderung nicht ausgeführt.
+
+## iPhone-Ansicht (31.10.2026)
+
+Beim Öffnen des Erstellen-/Bearbeitenformulars wird die Seite an den Anfang zurückgesetzt, damit das Titelfeld nicht hinter der klebenden Kopfzeile liegt. Die Viewport-Einstellung und Touch-Gesten sperren Pinch-/Doppeltipp-Zoom für die iPhone-Web-App. Nach dieser Änderung wurden keine Tests ausgeführt.

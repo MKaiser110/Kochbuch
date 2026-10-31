@@ -18,8 +18,10 @@ export async function renderEditForm(id) {
 
   setPageTitle(id ? 'Rezept bearbeiten' : 'Neues Rezept');
   mountTemplate('tpl-recipe-form');
+  window.scrollTo(0, 0);
 
   const form = appRoot.querySelector('#recipe-form');
+  form.scrollTop = 0;
   const reviewNotice = form.querySelector('#import-review-notice');
   if (recipe.reviewRequired) {
     reviewNotice.hidden = false;
