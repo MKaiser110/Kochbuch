@@ -1,6 +1,7 @@
 // router.js — Mini-Router (hash-basiert, jedes Rezept eine eigene Route).
 //
 //   ''                        Übersicht
+//   'shopping'                Einkaufsliste
 //   'recipe/<id>'             Detailseite
 //   'edit/<id>'               Rezept bearbeiten
 //   'new'                     Neues Rezept
@@ -13,6 +14,7 @@ import { renderOverview } from './views/overview.js';
 import { renderDetail } from './views/detail.js';
 import { renderCook } from './views/cook-mode.js';
 import { renderEditForm } from './views/recipe-form.js';
+import { renderShopping } from './views/shopping.js';
 
 const btnBack = document.getElementById('btn-back');
 let currentHash = null;
@@ -24,34 +26,22 @@ export function initRouter() {
   btnBack.addEventListener('click', goBack);
 }
 
-/**
- * Beim Bearbeiten eines bestehenden Rezepts: zurück zur Detailseite dieses
- * Rezepts. Überall sonst: zur Übersicht.
- */
 function goBack() {
   const hash = location.hash.slice(1);
-  if (hash.startsWith('edit/')) {
-    location.hash = `recipe/${hash.slice('edit/'.length)}`;
-  } else {
-    location.hash = '';
-  }
+  if (hash.startsWith('edit/')) location.hash = `recipe/${hash.slice('edit/'.length)}`;
+  else location.hash = '';
 }
 
 function route() {
   const hash = location.hash.slice(1);
   const previousHash = currentHash;
   const restoreOverview = !hash && previousHash?.startsWith('recipe/');
-  if (previousHash === '' && hash.startsWith('recipe/')) {
-    overviewScrollY = window.scrollY;
-  }
+  if (previousHash === '' && hash.startsWith('recipe/')) overviewScrollY = window.scrollY;
   currentHash = hash;
   window.scrollTo(0, 0);
   closeSheet();
   startNavigation();
-  // Im Kochmodus Header-Aktionen ausblenden (kein versehentliches Tippen beim Kochen)
   document.body.classList.toggle('cook-mode', hash.startsWith('cook/'));
-  // Beim Seitenwechsel immer Wake Lock freigeben und Ansicht aufräumen;
-  // Kochmodus und Detailseite fordern ihn bei Bedarf neu an.
   disableWakeLock();
   runViewCleanup();
 
@@ -60,6 +50,9 @@ function route() {
     const servings = parseInt(new URLSearchParams(query || '').get('s'), 10) || null;
     btnBack.hidden = false;
     renderCook(id, servings);
+  } else if (hash === 'shopping') {
+    btnBack.hidden = true;
+    renderShopping();
   } else if (hash.startsWith('recipe/')) {
     btnBack.hidden = false;
     renderDetail(hash.slice('recipe/'.length));
@@ -71,8 +64,6 @@ function route() {
     renderEditForm(null);
   } else {
     btnBack.hidden = true;
-    renderOverview().then(() => {
-      requestAnimationFrame(() => window.scrollTo(0, restoreOverview ? overviewScrollY : 0));
-    });
+    renderOverview().then(() => requestAnimationFrame(() => window.scrollTo(0, restoreOverview ? overviewScrollY : 0)));
   }
 }
