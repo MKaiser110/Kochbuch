@@ -112,13 +112,14 @@
   stroke-width:1.7
 }
 .shopping-search-wrap {
-  position:fixed;
+  position:relative;
   z-index:12;
-  left:50%;
-  bottom:calc(67px + env(safe-area-inset-bottom, 0px));
-  transform:translateX(-50%);
+  left:auto;
+  bottom:auto;
+  transform:none;
   width:min(100%,720px);
-  margin:0;
+  flex:0 0 auto;
+  margin:0 auto;
   padding:8px 22px 10px;
   background:var(--surface);
   border-top:1px solid var(--line);
@@ -226,11 +227,7 @@ body.shopping-active:not(.shopping-keyboard-open)::after {
   color:var(--surface)
 }
 body.shopping-active {
-  position:fixed;
-  inset:0;
-  height:auto;
-  min-height:0;
-  padding-bottom:0;
+  padding-bottom:calc(67px + env(safe-area-inset-bottom, 0px));
   overflow:hidden
 }
 .shopping-empty {
@@ -494,7 +491,15 @@ body.shopping-active {
   fill:none
 }
 .shopping-keyboard-open .shopping-search-wrap {
+  position:fixed;
+  z-index:12;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(100%,720px);
   bottom:auto
+}
+.shopping-keyboard-open {
+  padding-bottom:0
 }
 .shopping-search-focused .shopping-nav,
 .shopping-keyboard-open .shopping-nav {
