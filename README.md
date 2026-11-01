@@ -42,5 +42,6 @@ python -m http.server 8000
 - Ansichten und Formular: `js/views/`
 - Import-, Export- und PDF-Funktionen: `js/services/`; Einkaufslisten-Styles: `css/shopping.css`
 - Offline-Cache: `sw.js`
+- Die Einkaufslistenansicht liegt in `js/views/shopping.js`; Produktkatalog, Zutatenübernahme, Dialoge und Produktdarstellung sind in separate Module aufgeteilt.
 
-Mit Node.js kannst du die automatisierten Tests über `npm test` starten.
+Mit Node.js kannst du die automatisierten Tests über `npm test` starten. Die Tests liegen in `tests/` und werden direkt von Node.js ausgeführt.
