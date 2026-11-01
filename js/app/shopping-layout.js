@@ -1,12 +1,12 @@
 import { setViewCleanup } from '../view-lifecycle.js';
 
 export function setupShoppingLayout() {
+  const shell = document.getElementById('app-shell');
   const searchWrap = document.querySelector('.shopping-search-wrap');
   const search = searchWrap?.querySelector('#shopping-search');
-  const app = document.getElementById('app');
   const viewport = window.visualViewport;
 
-  if (!searchWrap || !search || !app) {
+  if (!shell || !searchWrap || !search) {
     throw new Error('Einkaufslisten-Layout konnte nicht initialisiert werden.');
   }
 
@@ -14,33 +14,14 @@ export function setupShoppingLayout() {
   let blurTimer = 0;
   let viewportHeightOnFocus = 0;
 
-  const updateContentBottom = () => {
-    app.style.setProperty(
-      '--shopping-content-bottom',
-      `calc(${Math.ceil(searchWrap.getBoundingClientRect().height + 67)}px + env(safe-area-inset-bottom, 0px))`,
-    );
-  };
-
-  const positionSearch = () => {
-    if (!document.body.classList.contains('shopping-keyboard-open')) return;
-
-    const viewportTop = Math.max(0, viewport?.offsetTop || 0);
-    const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
-    searchWrap.style.top = `${Math.max(viewportTop, viewportBottom - searchWrap.offsetHeight - 4)}px`;
-    searchWrap.style.bottom = 'auto';
-  };
-
   const updateLayout = () => {
     layoutFrame = 0;
     const keyboardOpen = document.activeElement === search
       && viewportHeightOnFocus > 0
       && viewportHeightOnFocus - (viewport?.height || window.innerHeight) > 120;
     document.body.classList.toggle('shopping-keyboard-open', keyboardOpen);
-    if (!keyboardOpen) {
-      searchWrap.style.removeProperty('top');
-      searchWrap.style.removeProperty('bottom');
-    }
-    positionSearch();
+    shell.style.setProperty('--shell-viewport-height', `${viewport?.height || window.innerHeight}px`);
+    shell.style.setProperty('--shell-viewport-top', `${keyboardOpen ? viewport?.offsetTop || 0 : 0}px`);
   };
 
   const scheduleLayout = () => {
@@ -68,40 +49,35 @@ export function setupShoppingLayout() {
       document.body.classList.remove('shopping-search-focused');
       document.body.classList.remove('shopping-keyboard-open');
       viewportHeightOnFocus = 0;
-      searchWrap.style.removeProperty('top');
-      searchWrap.style.removeProperty('bottom');
+      shell.style.removeProperty('--shell-viewport-top');
+      shell.style.removeProperty('--shell-viewport-height');
       scheduleLayout();
     }, 240);
   };
 
-  const resizeObserver = new ResizeObserver(updateContentBottom);
-  resizeObserver.observe(searchWrap);
   window.addEventListener('resize', scheduleLayout);
   window.addEventListener('orientationchange', scheduleLayout);
   window.addEventListener('pageshow', scheduleLayout);
   viewport?.addEventListener('resize', scheduleLayout);
+  viewport?.addEventListener('scroll', scheduleLayout);
   search.addEventListener('focus', onSearchFocus);
   search.addEventListener('blur', onSearchBlur);
-  search.addEventListener('click', onSearchFocus);
-  updateContentBottom();
   scheduleLayout();
 
   setViewCleanup(() => {
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
     if (blurTimer) clearTimeout(blurTimer);
-    resizeObserver.disconnect();
     window.removeEventListener('resize', scheduleLayout);
     window.removeEventListener('orientationchange', scheduleLayout);
     window.removeEventListener('pageshow', scheduleLayout);
     viewport?.removeEventListener('resize', scheduleLayout);
+    viewport?.removeEventListener('scroll', scheduleLayout);
     search.removeEventListener('focus', onSearchFocus);
     search.removeEventListener('blur', onSearchBlur);
-    search.removeEventListener('click', onSearchFocus);
     document.body.classList.remove('shopping-keyboard-open');
     document.body.classList.remove('shopping-search-focused');
     viewportHeightOnFocus = 0;
-    searchWrap.style.removeProperty('top');
-    searchWrap.style.removeProperty('bottom');
-    app.style.removeProperty('--shopping-content-bottom');
+    shell.style.removeProperty('--shell-viewport-top');
+    shell.style.removeProperty('--shell-viewport-height');
   });
 }

@@ -3,7 +3,7 @@ export function setupConnectionStatus() {
   status.id = 'connection-status';
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
-  document.querySelector('.topbar').insertAdjacentElement('afterend', status);
+  document.querySelector('#app-shell .topbar').insertAdjacentElement('afterend', status);
 
   const update = () => {
     const onStartScreen = !location.hash || location.hash === '#';

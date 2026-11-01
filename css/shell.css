@@ -1,13 +1,28 @@
-/* shell.css — Kopfzeile (Topbar) und Inhaltsbereich (#app). */
+/* shell.css — App-Shell, Kopfzeile und scrollbarer Inhaltsbereich. */
 
 body {
   --shell-inset: 8px;
-  display: flex;
   height: 100vh;
-  height: calc(100dvh + env(safe-area-inset-bottom, 0px));
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+#app-shell {
+  position: fixed;
+  top: var(--shell-viewport-top, 0px);
+  right: 0;
+  left: 0;
+  display: flex;
+  width: min(100%, 996px);
+  height: var(--shell-viewport-height, 100vh);
+  height: var(--shell-viewport-height, 100dvh);
   min-height: 0;
   flex-direction: column;
+  margin-inline: auto;
+  padding: var(--shell-inset) var(--shell-inset) env(safe-area-inset-bottom, 0px);
   overflow: hidden;
+  background: var(--surface);
 }
 
 .topbar, #app {
@@ -136,27 +151,43 @@ body {
 }
 
 body.shopping-active .topbar {
-  position: fixed;
-  top: var(--shell-inset, 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(calc(100% - 2 * var(--shell-inset, 8px)), 980px);
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+  width: min(100%, 980px);
   z-index: 20;
 }
 
 body.shopping-active #app {
-  position: fixed;
-  top: calc(84px + env(safe-area-inset-top, 0px));
-  right: auto;
-  bottom: var(--shopping-content-bottom, calc(134px + env(safe-area-inset-bottom, 0px)));
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(calc(100% - 2 * var(--shell-inset, 8px)), 980px);
+  position: relative;
+  inset: auto;
+  transform: none;
+  width: min(100%, 980px);
   height: auto;
   min-height: 0;
-  flex: none;
+  flex: 1 1 0;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+}
+
+body.shopping-active #app-shell {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+}
+
+body.shopping-active .topbar { grid-row: 1; }
+body.shopping-active #connection-status { grid-row: 2; }
+body.shopping-active #app { grid-row: 3; }
+body.shopping-active .shopping-search-wrap { grid-row: 4; }
+body.shopping-active .shopping-nav { grid-row: 5; }
+
+body.shopping-active .shopping-nav {
+  position: static;
+  inset: auto;
+  transform: none;
+  justify-self: center;
+  margin: 6px auto 0;
 }

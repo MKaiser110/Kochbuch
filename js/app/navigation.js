@@ -7,7 +7,7 @@ export function setupNavigation() {
     const tab = event.target.closest('[data-tab]')?.dataset.tab;
     if (tab) location.hash = tab === 'shopping' ? 'shopping' : '';
   });
-  document.body.append(nav);
+  document.getElementById('app-shell').append(nav);
 
   const syncVisibility = () => {
     const hash = location.hash;

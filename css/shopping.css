@@ -112,13 +112,14 @@
   stroke-width:1.7
 }
 .shopping-search-wrap {
-  position:fixed;
+  position:relative;
   z-index:12;
-  left:50%;
-  bottom:calc(67px + env(safe-area-inset-bottom, 0px));
-  transform:translateX(-50%);
+  left:auto;
+  bottom:auto;
+  transform:none;
   width:min(100%,720px);
-  margin:0;
+  margin:0 auto;
+  flex:0 0 auto;
   padding:8px 22px 10px;
   background:var(--surface);
   border-top:1px solid var(--line);
@@ -198,20 +199,6 @@
   background:var(--surface);
   box-shadow:0 5px 22px rgb(0 0 0 / 20%)
 }
-body.shopping-active:not(.shopping-keyboard-open)::after {
-  content:"";
-  position:fixed;
-  z-index:10;
-  left:50%;
-  bottom:0;
-  transform:translateX(-50%);
-  width:min(100vw,720px);
-  height:calc(72px + env(safe-area-inset-bottom));
-  border-top:1px solid var(--line);
-  background:var(--surface);
-  box-shadow:0 -8px 20px #0000000a;
-  pointer-events:none
-}
 .shopping-styles-ready .shopping-nav button {
   min-height:42px;
   padding:0 18px;
@@ -224,10 +211,6 @@ body.shopping-active:not(.shopping-keyboard-open)::after {
 .shopping-styles-ready .shopping-nav button.active {
   background:var(--ink);
   color:var(--surface)
-}
-body.shopping-active {
-  padding-bottom:0;
-  overflow:hidden
 }
 .shopping-empty {
   padding:26px 8px;
@@ -488,12 +471,6 @@ body.shopping-active {
   stroke-linecap:round;
   stroke-linejoin:round;
   fill:none
-}
-.shopping-keyboard-open .shopping-search-wrap {
-  bottom:auto
-}
-.shopping-keyboard-open {
-  padding-bottom:0
 }
 .shopping-search-focused .shopping-nav,
 .shopping-keyboard-open .shopping-nav {

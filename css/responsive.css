@@ -2,7 +2,7 @@
 
 @media (max-width: 420px) {
   html, body { background: var(--surface); }
-  body { padding: 5px 5px 0; --shell-inset: 5px; }
+  body { --shell-inset: 5px; }
   .topbar { top: 0; min-height: 70px; padding-inline: 16px; border-radius: 23px 23px 0 0; }
   #app { height: 0; min-height: 0; padding: 8px 16px 26px; border-radius: 0; }
   .controls-row { gap: 5px; }

@@ -19,6 +19,7 @@ export function renderShopping() {
   document.body.classList.add('shopping-active');
   document.querySelector('.topbar h1').textContent = 'Kochbuch';
   const root = document.getElementById('app');
+  const shell = document.getElementById('app-shell');
   root.innerHTML = `
     <div class="shopping-page">
       <div id="shopping-items"></div>
@@ -32,7 +33,7 @@ export function renderShopping() {
   const search = root.querySelector('#shopping-search');
   search.value = sessionStorage.getItem('shopping-query') || '';
   const searchWrap = root.querySelector('.shopping-search-wrap');
-  document.body.append(searchWrap);
+  shell.insertBefore(searchWrap, document.querySelector('.shopping-nav'));
   search.addEventListener('input', () => {
     sessionStorage.setItem('shopping-query', search.value);
     render();
