@@ -12,23 +12,16 @@ export function setupShoppingLayout() {
   }
 
   let layoutFrame = 0;
-  let searchFrame = 0;
   let blurTimer = 0;
   let focusTimers = [];
 
   const positionSearch = () => {
-    searchFrame = 0;
     if (document.activeElement !== search) return;
 
     const viewportTop = Math.max(0, viewport?.offsetTop || 0);
     const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
     searchWrap.style.top = `${Math.max(viewportTop, viewportBottom - searchWrap.offsetHeight - 4)}px`;
     searchWrap.style.bottom = 'auto';
-  };
-
-  const scheduleSearchPosition = () => {
-    if (searchFrame) cancelAnimationFrame(searchFrame);
-    searchFrame = requestAnimationFrame(positionSearch);
   };
 
   const updateLayout = () => {
@@ -56,8 +49,8 @@ export function setupShoppingLayout() {
     }
     focusTimers.forEach(clearTimeout);
     document.body.classList.add('shopping-keyboard-open');
-    scheduleSearchPosition();
-    focusTimers = [60, 180, 360].map(delay => window.setTimeout(scheduleSearchPosition, delay));
+    scheduleLayout();
+    focusTimers = [60, 180, 360].map(delay => window.setTimeout(scheduleLayout, delay));
   };
 
   const onSearchBlur = () => {
@@ -80,28 +73,27 @@ export function setupShoppingLayout() {
   window.addEventListener('resize', scheduleLayout);
   window.addEventListener('orientationchange', scheduleLayout);
   viewport?.addEventListener('resize', scheduleLayout);
-  viewport?.addEventListener('scroll', scheduleSearchPosition);
-  document.addEventListener('scroll', scheduleSearchPosition, true);
+  viewport?.addEventListener('scroll', scheduleLayout);
+  document.addEventListener('scroll', scheduleLayout, true);
   search.addEventListener('focus', onSearchFocus);
   search.addEventListener('blur', onSearchBlur);
-  search.addEventListener('pointerdown', scheduleSearchPosition);
+  search.addEventListener('pointerdown', scheduleLayout);
   search.addEventListener('click', onSearchFocus);
   scheduleLayout();
 
   setViewCleanup(() => {
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
-    if (searchFrame) cancelAnimationFrame(searchFrame);
     if (blurTimer) clearTimeout(blurTimer);
     focusTimers.forEach(clearTimeout);
     resizeObserver.disconnect();
     window.removeEventListener('resize', scheduleLayout);
     window.removeEventListener('orientationchange', scheduleLayout);
     viewport?.removeEventListener('resize', scheduleLayout);
-    viewport?.removeEventListener('scroll', scheduleSearchPosition);
-    document.removeEventListener('scroll', scheduleSearchPosition, true);
+    viewport?.removeEventListener('scroll', scheduleLayout);
+    document.removeEventListener('scroll', scheduleLayout, true);
     search.removeEventListener('focus', onSearchFocus);
     search.removeEventListener('blur', onSearchBlur);
-    search.removeEventListener('pointerdown', scheduleSearchPosition);
+    search.removeEventListener('pointerdown', scheduleLayout);
     search.removeEventListener('click', onSearchFocus);
     document.body.classList.remove('shopping-keyboard-open');
     searchWrap.style.removeProperty('top');

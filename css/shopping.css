@@ -379,26 +379,91 @@ body.shopping-active {
   color:var(--danger)
 }
 .ingredient-choice-grid {
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:9px
+  flex:1 1 auto;
+  align-content:start;
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  padding:2px
 }
 .ingredient-choice-tile {
+  position:relative;
   border-color:var(--line);
-  box-shadow:none
+  box-shadow:none;
+  text-align:left
 }
 .ingredient-choice-tile.selected {
   border:2px solid var(--focus);
   box-shadow:0 0 0 2px color-mix(in srgb,var(--focus) 18%,transparent)
 }
-.ingredient-choice-tile:not(.selected) {
-  opacity:.55
+.ingredient-choice-indicator {
+  position:absolute;
+  top:7px;
+  right:7px;
+  display:none;
+  width:25px;
+  height:25px;
+  place-items:center;
+  border:1px solid var(--line);
+  border-radius:50%;
+  background:var(--surface);
+  color:var(--ink)
 }
-.ingredient-choice-tile .product-name {
-  font-size:var(--text-body)
+.ingredient-choice-tile.selected .ingredient-choice-indicator {
+  display:grid;
+  border-color:var(--focus);
+  background:var(--focus);
+  color:var(--surface)
 }
-.ingredient-choice-tile .product-quantity {
-  font-size:.8rem
+.ingredient-choice-indicator svg {
+  width:15px;
+  height:15px;
+  stroke:currentColor;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-width:2
+}
+.ingredient-choice-header {
+  flex:0 0 auto
+}
+.ingredient-choice-header h2 {
+  margin:0 0 6px
+}
+.ingredient-choice-header p {
+  margin:0 0 10px;
+  color:var(--ink-soft);
+  font-size:.9rem;
+  line-height:1.45
+}
+.ingredient-choice-count {
+  display:block;
+  margin-bottom:12px;
+  color:var(--ink-soft);
+  font-size:.8rem;
+  font-weight:600
+}
+.ingredient-choice-dialog {
+  display:flex;
+  flex-direction:column;
+  width:min(720px,calc(100vw - 28px));
+  max-height:min(88dvh,760px);
+  overflow:hidden;
+  padding:22px
+}
+.ingredient-choice-dialog .shopping-dialog-actions {
+  flex:0 0 auto;
+  margin-top:12px
+}
+.ingredient-choice-dialog [data-add]:disabled {
+  opacity:.5;
+  cursor:not-allowed
+}
+.ingredient-choice-empty {
+  grid-column:1 / -1;
+  margin:0;
+  padding:20px 10px;
+  color:var(--ink-soft);
+  text-align:center
 }
 .shopping-styles-ready .shopping-recipe-action {
   display:inline-flex;
@@ -486,8 +551,12 @@ body.shopping-active {
     flex-basis:58px
   }
 .ingredient-choice-grid {
-    gap:7px
+  gap:8px
   }
+.ingredient-choice-dialog {
+  max-height:90dvh;
+  padding:18px 14px
+}
 .ingredient-choice-tile .product-name {
     font-size:.92rem
   }

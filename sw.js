@@ -1,6 +1,6 @@
 // Offline cache for the app shell. First-party modules and stylesheets are
 // discovered from index.html and their imports, so new files need no list entry.
-const CACHE_NAME = 'kochbuch-shell';
+const CACHE_NAME = 'kochbuch-shell-v2';
 
 async function collectAppFiles() {
   const root = new URL('./', self.location.href);
@@ -80,7 +80,7 @@ self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
     await Promise.all(keys
-      .filter(key => key.startsWith('kochbuch-shell-') && key !== CACHE_NAME)
+      .filter(key => key.startsWith('kochbuch-shell') && key !== CACHE_NAME)
       .map(key => caches.delete(key)));
     await self.clients.claim();
   })());

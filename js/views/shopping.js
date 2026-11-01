@@ -24,4 +24,71 @@ function openProductForm(existing=null){const d=document.createElement('dialog')
 function downloadJSON(data,name){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download=name;a.click();URL.revokeObjectURL(a.href);}
 function showItemDetails(item){const d=document.createElement('dialog');d.className='shopping-dialog';d.innerHTML='<h2>'+esc(item.name)+'</h2><p><strong>Menge:</strong> '+esc(item.quantity||'Keine Menge angegeben')+'</p><p><strong>Details:</strong> '+esc(item.details||'Keine weiteren Details')+'</p><div class="shopping-dialog-actions"><button data-close>Schließen</button><button class="primary" data-edit>Bearbeiten</button></div>';d.querySelector('[data-close]').onclick=()=>d.close();d.querySelector('[data-edit]').onclick=()=>{d.close();editItemDetails(item);};document.body.append(d);d.showModal();d.addEventListener('close',()=>d.remove(),{once:true});}
 function editItemDetails(item){activateShoppingStyles();const d=document.createElement('dialog');d.className='shopping-dialog';d.innerHTML='<h2>'+esc(item.name)+'</h2><label>Menge<input name="quantity" value="'+esc(item.quantity||'')+'" placeholder="z. B. 2 Stück oder 500 g"></label><label>Eigene Details<textarea name="details" rows="3" placeholder="Marke, Sorte oder weitere Notizen">'+esc(item.details||'')+'</textarea></label><div class="shopping-dialog-actions"><button data-cancel>Abbrechen</button><button class="primary" data-save>Speichern</button></div>';d.querySelector('[data-cancel]').onclick=()=>d.close();d.querySelector('[data-save]').onclick=()=>{item.quantity=d.querySelector('[name=quantity]').value.trim();item.details=d.querySelector('[name=details]').value.trim();pendingItemId=null;saveShoppingState();d.close();document.getElementById('shopping-search')?.dispatchEvent(new Event('input'));};document.body.append(d);d.showModal();d.addEventListener('close',()=>d.remove(),{once:true});}
-export function chooseRecipeIngredients(ingredients){activateShoppingStyles();const d=document.createElement('dialog');d.className='shopping-dialog';d.innerHTML='<h2>Zutaten übernehmen</h2><p>Tippe die Zutaten an, die du noch brauchst. Abgewählte Zutaten bleiben zu Hause.</p><div class="ingredient-choice-grid"></div><div class="shopping-dialog-actions"><button data-cancel>Abbrechen</button><button class="primary" data-add>Auswahl hinzufügen</button></div>';const choices=d.querySelector('.ingredient-choice-grid');(ingredients||[]).forEach((ing,i)=>{if(!ing.name?.trim())return;const p={name:ing.name,icon:products.find(x=>normalizeShoppingName(x.name)===normalizeShoppingName(ing.name))?.icon||''};const b=tile(p,()=>{b.classList.toggle('selected');b.setAttribute('aria-pressed',String(b.classList.contains('selected')));},[ing.amount,ing.unit].filter(Boolean).join(' '));b.classList.add('ingredient-choice-tile','selected');b.setAttribute('aria-pressed','true');b.dataset.index=String(i);choices.append(b);});d.querySelector('[data-cancel]').onclick=()=>d.close();d.querySelector('[data-add]').onclick=()=>{choices.querySelectorAll('.ingredient-choice-tile.selected').forEach(button=>{const ing=ingredients[Number(button.dataset.index)];const p={id:'new-'+normalizeShoppingName(ing.name),name:ing.name.trim(),category:'Sonstiges',icon:products.find(x=>normalizeShoppingName(x.name)===normalizeShoppingName(ing.name))?.icon||''};addProduct(p,[ing.amount,ing.unit].filter(Boolean).join(' '),true);});d.close();alert('Ausgewählte Zutaten wurden zur Einkaufsliste hinzugefügt.');};document.body.append(d);d.showModal();d.addEventListener('close',()=>d.remove(),{once:true});}
+export function chooseRecipeIngredients(ingredients) {
+  activateShoppingStyles();
+  const recipeIngredients = ingredients || [];
+  const d = document.createElement('dialog');
+  d.className = 'shopping-dialog ingredient-choice-dialog';
+  d.innerHTML = '<header class="ingredient-choice-header"><h2>Zutaten übernehmen</h2><p>Wähle aus, was du einkaufen möchtest. Alle Zutaten sind vorausgewählt.</p><span class="ingredient-choice-count" aria-live="polite"></span></header><div class="ingredient-choice-grid shopping-grid" role="group" aria-label="Rezeptzutaten"></div><div class="shopping-dialog-actions"><button data-cancel>Abbrechen</button><button class="primary" data-add>Auswahl hinzufügen</button></div>';
+
+  const choices = d.querySelector('.ingredient-choice-grid');
+  const count = d.querySelector('.ingredient-choice-count');
+  const addButton = d.querySelector('[data-add]');
+  const validIngredients = recipeIngredients
+    .map((ingredient, index) => ({ ingredient, index }))
+    .filter(({ ingredient }) => ingredient.name?.trim());
+
+  const updateSelection = () => {
+    const selected = choices.querySelectorAll('.ingredient-choice-tile.selected').length;
+    count.textContent = `${selected} von ${validIngredients.length} Zutaten ausgewählt`;
+    addButton.disabled = selected === 0;
+  };
+
+  validIngredients.forEach(({ ingredient, index }) => {
+    const product = {
+      name: ingredient.name,
+      icon: products.find(product => normalizeShoppingName(product.name) === normalizeShoppingName(ingredient.name))?.icon || '',
+    };
+    const button = tile(product, () => {
+      button.classList.toggle('selected');
+      button.setAttribute('aria-pressed', String(button.classList.contains('selected')));
+      updateSelection();
+    }, [ingredient.amount, ingredient.unit].filter(Boolean).join(' '));
+    button.classList.add('ingredient-choice-tile', 'selected');
+    button.setAttribute('aria-pressed', 'true');
+    button.dataset.index = String(index);
+    const indicator = document.createElement('span');
+    indicator.className = 'ingredient-choice-indicator';
+    indicator.setAttribute('aria-hidden', 'true');
+    indicator.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6"></path></svg>';
+    button.append(indicator);
+    choices.append(button);
+  });
+
+  if (!validIngredients.length) {
+    const empty = document.createElement('p');
+    empty.className = 'ingredient-choice-empty';
+    empty.textContent = 'Dieses Rezept enthält keine Zutaten, die übernommen werden können.';
+    choices.append(empty);
+  }
+
+  updateSelection();
+  d.querySelector('[data-cancel]').onclick = () => d.close();
+  addButton.onclick = () => {
+    choices.querySelectorAll('.ingredient-choice-tile.selected').forEach(button => {
+      const ingredient = recipeIngredients[Number(button.dataset.index)];
+      const product = {
+        id: 'new-' + normalizeShoppingName(ingredient.name),
+        name: ingredient.name.trim(),
+        category: 'Sonstiges',
+        icon: products.find(item => normalizeShoppingName(item.name) === normalizeShoppingName(ingredient.name))?.icon || '',
+      };
+      addProduct(product, [ingredient.amount, ingredient.unit].filter(Boolean).join(' '), true);
+    });
+    d.close();
+    alert('Ausgewählte Zutaten wurden zur Einkaufsliste hinzugefügt.');
+  };
+  document.body.append(d);
+  d.showModal();
+  d.addEventListener('close', () => d.remove(), { once: true });
+}
