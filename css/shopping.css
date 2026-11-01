@@ -226,6 +226,10 @@ body.shopping-active:not(.shopping-keyboard-open)::after {
   color:var(--surface)
 }
 body.shopping-active {
+  position:fixed;
+  inset:0;
+  height:auto;
+  min-height:0;
   padding-bottom:0;
   overflow:hidden
 }
