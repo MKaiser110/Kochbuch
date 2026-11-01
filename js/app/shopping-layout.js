@@ -27,6 +27,10 @@ export function setupShoppingLayout() {
 
   const updateLayout = () => {
     layoutFrame = 0;
+    document.body.style.setProperty(
+      '--shopping-viewport-top-offset',
+      `${Math.max(0, viewport?.offsetTop || 0)}px`,
+    );
     const keyboardOpen = document.activeElement === search
       && viewportHeightOnFocus > 0
       && viewportHeightOnFocus - (viewport?.height || window.innerHeight) > 120;
@@ -66,6 +70,7 @@ export function setupShoppingLayout() {
     }
     focusTimers.forEach(clearTimeout);
     viewportHeightOnFocus = viewport?.height || window.innerHeight;
+    document.body.classList.add('shopping-search-focused');
     document.body.classList.remove('shopping-keyboard-open');
     scheduleLayout();
     focusTimers = [60, 180, 360].map(delay => window.setTimeout(scheduleLayout, delay));
@@ -78,6 +83,7 @@ export function setupShoppingLayout() {
       blurTimer = 0;
       if (document.activeElement === search) return;
 
+      document.body.classList.remove('shopping-search-focused');
       document.body.classList.remove('shopping-keyboard-open');
       viewportHeightOnFocus = 0;
       searchWrap.style.removeProperty('top');
@@ -117,11 +123,13 @@ export function setupShoppingLayout() {
     search.removeEventListener('pointerdown', scheduleLayout);
     search.removeEventListener('click', onSearchFocus);
     document.body.classList.remove('shopping-keyboard-open');
+    document.body.classList.remove('shopping-search-focused');
     viewportHeightOnFocus = 0;
     searchWrap.style.removeProperty('top');
     searchWrap.style.removeProperty('bottom');
     document.body.style.removeProperty('--shopping-content-top');
     document.body.style.removeProperty('--shopping-content-bottom');
+    document.body.style.removeProperty('--shopping-viewport-top-offset');
     document.body.style.removeProperty('--shopping-viewport-bottom-offset');
   });
 }

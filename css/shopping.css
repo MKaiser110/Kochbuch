@@ -492,6 +492,7 @@ body.shopping-active {
 .shopping-keyboard-open .shopping-search-wrap {
   bottom:auto
 }
+.shopping-search-focused .shopping-nav,
 .shopping-keyboard-open .shopping-nav {
   display:none!important
 }
