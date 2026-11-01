@@ -3,15 +3,23 @@ import { setViewCleanup } from '../view-lifecycle.js';
 export function setupShoppingLayout() {
   const searchWrap = document.querySelector('.shopping-search-wrap');
   const search = searchWrap?.querySelector('#shopping-search');
+  const app = document.getElementById('app');
   const viewport = window.visualViewport;
 
-  if (!searchWrap || !search) {
+  if (!searchWrap || !search || !app) {
     throw new Error('Einkaufslisten-Layout konnte nicht initialisiert werden.');
   }
 
   let layoutFrame = 0;
   let blurTimer = 0;
   let viewportHeightOnFocus = 0;
+
+  const updateContentBottom = () => {
+    app.style.setProperty(
+      '--shopping-content-bottom',
+      `calc(${Math.ceil(searchWrap.getBoundingClientRect().height + 67)}px + env(safe-area-inset-bottom, 0px))`,
+    );
+  };
 
   const positionSearch = () => {
     if (!document.body.classList.contains('shopping-keyboard-open')) return;
@@ -32,7 +40,6 @@ export function setupShoppingLayout() {
       searchWrap.style.removeProperty('top');
       searchWrap.style.removeProperty('bottom');
     }
-    positionSearch();
     positionSearch();
   };
 
@@ -67,7 +74,7 @@ export function setupShoppingLayout() {
     }, 240);
   };
 
-  const resizeObserver = new ResizeObserver(scheduleLayout);
+  const resizeObserver = new ResizeObserver(updateContentBottom);
   resizeObserver.observe(searchWrap);
   window.addEventListener('resize', scheduleLayout);
   window.addEventListener('orientationchange', scheduleLayout);
@@ -76,6 +83,7 @@ export function setupShoppingLayout() {
   search.addEventListener('focus', onSearchFocus);
   search.addEventListener('blur', onSearchBlur);
   search.addEventListener('click', onSearchFocus);
+  updateContentBottom();
   scheduleLayout();
 
   setViewCleanup(() => {
@@ -94,5 +102,6 @@ export function setupShoppingLayout() {
     viewportHeightOnFocus = 0;
     searchWrap.style.removeProperty('top');
     searchWrap.style.removeProperty('bottom');
+    app.style.removeProperty('--shopping-content-bottom');
   });
 }

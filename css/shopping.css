@@ -112,14 +112,13 @@
   stroke-width:1.7
 }
 .shopping-search-wrap {
-  position:relative;
+  position:fixed;
   z-index:12;
-  left:auto;
-  bottom:auto;
-  transform:none;
+  left:50%;
+  bottom:calc(67px + env(safe-area-inset-bottom, 0px));
+  transform:translateX(-50%);
   width:min(100%,720px);
-  flex:0 0 auto;
-  margin:0 auto;
+  margin:0;
   padding:8px 22px 10px;
   background:var(--surface);
   border-top:1px solid var(--line);
@@ -227,7 +226,7 @@ body.shopping-active:not(.shopping-keyboard-open)::after {
   color:var(--surface)
 }
 body.shopping-active {
-  padding-bottom:calc(67px + env(safe-area-inset-bottom, 0px));
+  padding-bottom:0;
   overflow:hidden
 }
 .shopping-empty {
@@ -491,11 +490,6 @@ body.shopping-active {
   fill:none
 }
 .shopping-keyboard-open .shopping-search-wrap {
-  position:fixed;
-  z-index:12;
-  left:50%;
-  transform:translateX(-50%);
-  width:min(100%,720px);
   bottom:auto
 }
 .shopping-keyboard-open {

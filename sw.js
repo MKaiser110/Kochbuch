@@ -1,6 +1,6 @@
 // Offline cache for the app shell. First-party modules and stylesheets are
 // discovered from index.html and their imports, so new files need no list entry.
-const CACHE_NAME = 'kochbuch-shell-v10';
+const CACHE_NAME = 'kochbuch-shell-v11';
 
 async function collectAppFiles() {
   const root = new URL('./', self.location.href);

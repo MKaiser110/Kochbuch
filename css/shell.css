@@ -136,22 +136,25 @@ body {
 }
 
 body.shopping-active .topbar {
-  position: relative;
-  top: auto;
-  left: auto;
-  transform: none;
-  width: min(100%, 980px);
+  position: fixed;
+  top: var(--shell-inset, 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2 * var(--shell-inset, 8px)), 980px);
   z-index: 20;
 }
 
 body.shopping-active #app {
-  position: relative;
-  inset: auto;
-  transform: none;
-  width: min(100%, 980px);
+  position: fixed;
+  top: calc(84px + env(safe-area-inset-top, 0px));
+  right: auto;
+  bottom: var(--shopping-content-bottom, calc(134px + env(safe-area-inset-bottom, 0px)));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2 * var(--shell-inset, 8px)), 980px);
   height: auto;
   min-height: 0;
-  flex: 1 1 0;
+  flex: none;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
