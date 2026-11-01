@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test"
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "vite": "^8.3.5"
   }
 }

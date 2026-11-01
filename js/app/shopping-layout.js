@@ -14,9 +14,10 @@ export function setupShoppingLayout() {
   let layoutFrame = 0;
   let blurTimer = 0;
   let focusTimers = [];
+  let viewportHeightOnFocus = 0;
 
   const positionSearch = () => {
-    if (document.activeElement !== search) return;
+    if (!document.body.classList.contains('shopping-keyboard-open')) return;
 
     const viewportTop = Math.max(0, viewport?.offsetTop || 0);
     const viewportBottom = viewportTop + (viewport?.height || window.innerHeight);
@@ -26,6 +27,15 @@ export function setupShoppingLayout() {
 
   const updateLayout = () => {
     layoutFrame = 0;
+    const keyboardOpen = document.activeElement === search
+      && viewportHeightOnFocus > 0
+      && viewportHeightOnFocus - (viewport?.height || window.innerHeight) > 120;
+    document.body.classList.toggle('shopping-keyboard-open', keyboardOpen);
+    if (!keyboardOpen) {
+      searchWrap.style.removeProperty('top');
+      searchWrap.style.removeProperty('bottom');
+    }
+
     const viewportBottom = viewport
       ? viewport.offsetTop + viewport.height
       : window.innerHeight;
@@ -55,7 +65,8 @@ export function setupShoppingLayout() {
       blurTimer = 0;
     }
     focusTimers.forEach(clearTimeout);
-    document.body.classList.add('shopping-keyboard-open');
+    viewportHeightOnFocus = viewport?.height || window.innerHeight;
+    document.body.classList.remove('shopping-keyboard-open');
     scheduleLayout();
     focusTimers = [60, 180, 360].map(delay => window.setTimeout(scheduleLayout, delay));
   };
@@ -68,6 +79,7 @@ export function setupShoppingLayout() {
       if (document.activeElement === search) return;
 
       document.body.classList.remove('shopping-keyboard-open');
+      viewportHeightOnFocus = 0;
       searchWrap.style.removeProperty('top');
       searchWrap.style.removeProperty('bottom');
       scheduleLayout();
@@ -105,6 +117,7 @@ export function setupShoppingLayout() {
     search.removeEventListener('pointerdown', scheduleLayout);
     search.removeEventListener('click', onSearchFocus);
     document.body.classList.remove('shopping-keyboard-open');
+    viewportHeightOnFocus = 0;
     searchWrap.style.removeProperty('top');
     searchWrap.style.removeProperty('bottom');
     document.body.style.removeProperty('--shopping-content-top');
