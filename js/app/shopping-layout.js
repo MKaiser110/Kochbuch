@@ -27,10 +27,6 @@ export function setupShoppingLayout() {
 
   const updateLayout = () => {
     layoutFrame = 0;
-    document.body.style.setProperty(
-      '--shopping-viewport-top-offset',
-      `${Math.max(0, viewport?.offsetTop || 0)}px`,
-    );
     const keyboardOpen = document.activeElement === search
       && viewportHeightOnFocus > 0
       && viewportHeightOnFocus - (viewport?.height || window.innerHeight) > 120;
@@ -100,7 +96,6 @@ export function setupShoppingLayout() {
   window.addEventListener('pageshow', scheduleLayout);
   viewport?.addEventListener('resize', scheduleLayout);
   viewport?.addEventListener('scroll', scheduleLayout);
-  document.addEventListener('scroll', scheduleLayout, true);
   search.addEventListener('focus', onSearchFocus);
   search.addEventListener('blur', onSearchBlur);
   search.addEventListener('pointerdown', scheduleLayout);
@@ -117,7 +112,6 @@ export function setupShoppingLayout() {
     window.removeEventListener('pageshow', scheduleLayout);
     viewport?.removeEventListener('resize', scheduleLayout);
     viewport?.removeEventListener('scroll', scheduleLayout);
-    document.removeEventListener('scroll', scheduleLayout, true);
     search.removeEventListener('focus', onSearchFocus);
     search.removeEventListener('blur', onSearchBlur);
     search.removeEventListener('pointerdown', scheduleLayout);
@@ -129,7 +123,6 @@ export function setupShoppingLayout() {
     searchWrap.style.removeProperty('bottom');
     document.body.style.removeProperty('--shopping-content-top');
     document.body.style.removeProperty('--shopping-content-bottom');
-    document.body.style.removeProperty('--shopping-viewport-top-offset');
     document.body.style.removeProperty('--shopping-viewport-bottom-offset');
   });
 }
