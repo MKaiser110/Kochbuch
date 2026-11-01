@@ -4,7 +4,7 @@ body {
   --shell-inset: 8px;
   display: flex;
   height: 100vh;
-  height: 100dvh;
+  height: calc(100dvh + env(safe-area-inset-bottom, 0px));
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
