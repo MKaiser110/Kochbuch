@@ -20,7 +20,7 @@ body {
   min-height: 0;
   flex-direction: column;
   margin-inline: auto;
-  padding: var(--shell-inset) var(--shell-inset) 0;
+  padding: var(--shell-inset) var(--shell-inset) env(safe-area-inset-bottom, 0px);
   overflow: hidden;
   background: var(--surface);
 }
@@ -175,12 +175,7 @@ body.shopping-active #app {
 
 body.shopping-active #app-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
-}
-
-body.shopping-active #app-shell > * {
-  min-width: 0;
 }
 
 body.shopping-active .topbar { grid-row: 1; }
