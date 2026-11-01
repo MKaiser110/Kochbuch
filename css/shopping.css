@@ -115,7 +115,7 @@
   position:fixed;
   z-index:12;
   left:50%;
-  bottom:67px;
+  bottom:calc(67px + env(safe-area-inset-bottom, 0px));
   transform:translateX(-50%);
   width:min(100%,720px);
   margin:0;
