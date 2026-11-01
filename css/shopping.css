@@ -188,7 +188,7 @@
   position:fixed;
   z-index:11;
   left:50%;
-  bottom:calc(10px + env(safe-area-inset-bottom));
+  bottom:env(safe-area-inset-bottom);
   transform:translateX(-50%);
   display:flex;
   gap:6px;
@@ -250,6 +250,23 @@ body.shopping-active {
 .shopping-dialog h2 {
   margin-top:0
 }
+.catalog-dialog {
+  display:flex;
+  flex-direction:column;
+  width:min(600px,calc(100vw - 28px));
+  max-height:min(88dvh,760px);
+  padding:24px
+}
+.catalog-dialog > h2 {
+  margin:0 0 6px;
+  font-size:1.35rem
+}
+.catalog-dialog > p {
+  margin:0 0 18px;
+  color:var(--ink-soft);
+  font-size:.9rem;
+  line-height:1.45
+}
 .shopping-dialog label {
   display:grid;
   gap:6px;
@@ -286,12 +303,16 @@ body.shopping-active {
 }
 .shopping-catalog-list {
   display:grid;
-  gap:14px;
-  max-height:52vh;
-  overflow:auto
+  flex:1 1 auto;
+  gap:18px;
+  min-height:0;
+  max-height:none;
+  overflow:auto;
+  overscroll-behavior:contain;
+  padding-inline:1px
 }
 .catalog-section h3 {
-  margin:4px 0 7px;
+  margin:0 0 8px;
   color:var(--ink-soft);
   font-size:.78rem;
   letter-spacing:.05em;
@@ -299,28 +320,29 @@ body.shopping-active {
 }
 .catalog-grid {
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:7px
+  grid-template-columns:minmax(0,1fr);
+  gap:6px
 }
 .shopping-catalog-row {
   display:grid;
-  grid-template-columns:34px minmax(0,1fr);
-  grid-template-rows:auto auto;
+  grid-template-columns:34px minmax(0,1fr) auto;
   align-items:center;
-  gap:4px 8px;
+  gap:8px;
   min-width:0;
-  min-height:66px;
-  padding:8px;
+  min-height:58px;
+  padding:8px 10px;
   border:1px solid var(--line);
-  border-radius:12px;
-  background:var(--surface-soft)
+  border-radius:13px;
+  background:var(--surface)
 }
 .catalog-icon {
-  grid-row:1 / 3;
   display:grid;
   width:32px;
   height:32px;
   place-items:center;
+  overflow:hidden;
+  border-radius:10px;
+  background:var(--surface-soft);
   font-size:1.2rem
 }
 .catalog-icon img {
@@ -329,7 +351,6 @@ body.shopping-active {
   object-fit:contain
 }
 .catalog-product-name {
-  grid-column:2;
   min-width:0;
   display:-webkit-box;
   -webkit-box-orient:vertical;
@@ -341,17 +362,21 @@ body.shopping-active {
   overflow-wrap:anywhere
 }
 .catalog-actions {
-  grid-column:2;
   display:flex;
+  align-items:center;
   gap:5px
 }
 .catalog-actions button {
-  min-height:30px!important;
-  padding:4px 8px!important;
-  font-size:.7rem
+  min-height:34px!important;
+  padding:5px 9px!important;
+  border:1px solid var(--line)!important;
+  background:var(--surface-soft)!important;
+  font-size:.75rem
 }
 .catalog-actions .catalog-remove {
-  padding-inline:8px!important
+  width:34px;
+  padding-inline:0!important;
+  color:var(--danger)
 }
 .ingredient-choice-grid {
   display:grid;
@@ -406,6 +431,31 @@ body.shopping-active {
   display:none!important
 }
 @media(max-width:430px) {
+  .catalog-dialog {
+    max-height:90dvh;
+    padding:20px 14px
+  }
+  .catalog-dialog .shopping-dialog-actions {
+    gap:6px
+  }
+  .catalog-dialog .shopping-dialog-actions button {
+    padding-inline:10px
+  }
+  .shopping-catalog-row {
+    grid-template-columns:30px minmax(0,1fr) auto;
+    gap:6px;
+    padding-inline:8px
+  }
+  .catalog-icon {
+    width:30px;
+    height:30px
+  }
+  .catalog-actions {
+    gap:4px
+  }
+  .catalog-actions button {
+    padding-inline:7px!important
+  }
   .shopping-grid {
     gap:8px
   }

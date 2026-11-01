@@ -109,7 +109,7 @@ body {
   position: fixed;
   z-index: 11;
   left: 50%;
-  bottom: calc(10px + env(safe-area-inset-bottom));
+  bottom: env(safe-area-inset-bottom);
   transform: translateX(-50%);
   display: flex;
   gap: 6px;
