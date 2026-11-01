@@ -94,3 +94,42 @@ body {
   padding: 8px 22px 36px;
   border-radius: 0 0 26px 26px;
 }
+
+#connection-status {
+  width: min(100%, 980px);
+  margin: 0 auto;
+  padding: 6px 22px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: .8rem;
+}
+
+.shopping-nav {
+  position: fixed;
+  z-index: 11;
+  left: 50%;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 5px 22px #0002;
+}
+
+.shopping-nav button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.shopping-nav button.active {
+  background: var(--ink);
+  color: var(--surface);
+}

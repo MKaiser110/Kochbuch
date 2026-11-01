@@ -36,10 +36,11 @@ python -m http.server 8000
 ## Entwicklung
 
 - Oberfläche und Logik: `index.html`, `css/` und `js/` (ES-Module, ohne Framework)
-- Navigation: `js/router.js`
-- Lokale Speicherung und Modell: `js/core/`
+- App-Initialisierung und globale UI-Verknüpfungen: `js/app.js` und `js/app/`
+- Navigation: `js/router.js` und `js/app/navigation.js`
+- Lokale Speicherung und Modell: `js/core/` (einschließlich Einkaufsliste)
 - Ansichten und Formular: `js/views/`
-- Import-, Export- und PDF-Funktionen: `js/services/`
+- Import-, Export- und PDF-Funktionen: `js/services/`; Einkaufslisten-Styles: `css/shopping.css`
 - Offline-Cache: `sw.js`
 
 Mit Node.js kannst du die automatisierten Tests über `npm test` starten.
