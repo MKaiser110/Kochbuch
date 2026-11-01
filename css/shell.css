@@ -13,15 +13,14 @@ body {
   top: var(--shell-viewport-top, 0px);
   right: 0;
   left: 0;
-  --shell-safe-area-bottom: env(safe-area-inset-bottom, 0px);
   display: flex;
   width: min(100%, 996px);
-  height: calc(var(--shell-viewport-height, 100vh) + var(--shell-safe-area-bottom));
-  height: calc(var(--shell-viewport-height, 100dvh) + var(--shell-safe-area-bottom));
+  height: var(--shell-viewport-height, 100vh);
+  height: var(--shell-viewport-height, 100dvh);
   min-height: 0;
   flex-direction: column;
   margin-inline: auto;
-  padding: var(--shell-inset) var(--shell-inset) var(--shell-safe-area-bottom);
+  padding: var(--shell-inset) var(--shell-inset) 0;
   overflow: hidden;
   background: var(--surface);
 }
