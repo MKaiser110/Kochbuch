@@ -11,6 +11,7 @@ export function setupShoppingLayout() {
     throw new Error('Einkaufslisten-Layout konnte nicht initialisiert werden.');
   }
 
+  const headerTop = Number.parseFloat(getComputedStyle(header).top) || 0;
   let layoutFrame = 0;
   let blurTimer = 0;
   let focusTimers = [];
@@ -31,6 +32,11 @@ export function setupShoppingLayout() {
       && viewportHeightOnFocus > 0
       && viewportHeightOnFocus - (viewport?.height || window.innerHeight) > 120;
     document.body.classList.toggle('shopping-keyboard-open', keyboardOpen);
+    if (keyboardOpen) {
+      header.style.top = `${Math.max(0, viewport?.offsetTop || 0) + headerTop}px`;
+    } else {
+      header.style.removeProperty('top');
+    }
     if (!keyboardOpen) {
       searchWrap.style.removeProperty('top');
       searchWrap.style.removeProperty('bottom');
@@ -80,6 +86,7 @@ export function setupShoppingLayout() {
 
       document.body.classList.remove('shopping-keyboard-open');
       viewportHeightOnFocus = 0;
+      header.style.removeProperty('top');
       searchWrap.style.removeProperty('top');
       searchWrap.style.removeProperty('bottom');
       scheduleLayout();
