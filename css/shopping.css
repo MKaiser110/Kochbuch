@@ -1,5 +1,6 @@
 .shopping-page {
   max-width:720px;
+  min-width:0;
   margin:auto;
   padding-bottom:16px
 }
@@ -118,6 +119,7 @@
   bottom:auto;
   transform:none;
   width:min(100%,720px);
+  min-width:0;
   margin:0 auto;
   flex:0 0 auto;
   padding:8px 22px 10px;

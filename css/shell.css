@@ -175,7 +175,12 @@ body.shopping-active #app {
 
 body.shopping-active #app-shell {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+}
+
+body.shopping-active #app-shell > * {
+  min-width: 0;
 }
 
 body.shopping-active .topbar { grid-row: 1; }
