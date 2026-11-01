@@ -13,7 +13,6 @@ export function setupShoppingLayout() {
 
   let layoutFrame = 0;
   let blurTimer = 0;
-  let focusTimers = [];
   let viewportHeightOnFocus = 0;
 
   const positionSearch = () => {
@@ -36,13 +35,6 @@ export function setupShoppingLayout() {
       searchWrap.style.removeProperty('bottom');
     }
 
-    const viewportBottom = viewport
-      ? viewport.offsetTop + viewport.height
-      : window.innerHeight;
-    document.body.style.setProperty(
-      '--shopping-viewport-bottom-offset',
-      `${window.innerHeight - viewportBottom}px`,
-    );
     positionSearch();
 
     const headerBottom = header.getBoundingClientRect().bottom;
@@ -64,17 +56,14 @@ export function setupShoppingLayout() {
       clearTimeout(blurTimer);
       blurTimer = 0;
     }
-    focusTimers.forEach(clearTimeout);
     viewportHeightOnFocus = viewport?.height || window.innerHeight;
     document.body.classList.add('shopping-search-focused');
     document.body.classList.remove('shopping-keyboard-open');
     scheduleLayout();
-    focusTimers = [60, 180, 360].map(delay => window.setTimeout(scheduleLayout, delay));
   };
 
   const onSearchBlur = () => {
     if (blurTimer) clearTimeout(blurTimer);
-    focusTimers.forEach(clearTimeout);
     blurTimer = window.setTimeout(() => {
       blurTimer = 0;
       if (document.activeElement === search) return;
@@ -89,32 +78,26 @@ export function setupShoppingLayout() {
   };
 
   const resizeObserver = new ResizeObserver(scheduleLayout);
-  resizeObserver.observe(header);
   resizeObserver.observe(searchWrap);
   window.addEventListener('resize', scheduleLayout);
   window.addEventListener('orientationchange', scheduleLayout);
   window.addEventListener('pageshow', scheduleLayout);
   viewport?.addEventListener('resize', scheduleLayout);
-  viewport?.addEventListener('scroll', scheduleLayout);
   search.addEventListener('focus', onSearchFocus);
   search.addEventListener('blur', onSearchBlur);
-  search.addEventListener('pointerdown', scheduleLayout);
   search.addEventListener('click', onSearchFocus);
   scheduleLayout();
 
   setViewCleanup(() => {
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
     if (blurTimer) clearTimeout(blurTimer);
-    focusTimers.forEach(clearTimeout);
     resizeObserver.disconnect();
     window.removeEventListener('resize', scheduleLayout);
     window.removeEventListener('orientationchange', scheduleLayout);
     window.removeEventListener('pageshow', scheduleLayout);
     viewport?.removeEventListener('resize', scheduleLayout);
-    viewport?.removeEventListener('scroll', scheduleLayout);
     search.removeEventListener('focus', onSearchFocus);
     search.removeEventListener('blur', onSearchBlur);
-    search.removeEventListener('pointerdown', scheduleLayout);
     search.removeEventListener('click', onSearchFocus);
     document.body.classList.remove('shopping-keyboard-open');
     document.body.classList.remove('shopping-search-focused');
@@ -123,6 +106,5 @@ export function setupShoppingLayout() {
     searchWrap.style.removeProperty('bottom');
     document.body.style.removeProperty('--shopping-content-top');
     document.body.style.removeProperty('--shopping-content-bottom');
-    document.body.style.removeProperty('--shopping-viewport-bottom-offset');
   });
 }
