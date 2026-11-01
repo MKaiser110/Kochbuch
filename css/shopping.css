@@ -231,6 +231,9 @@ body.shopping-active:not(.shopping-keyboard-open)::after {
 body.shopping-active {
   padding-bottom:0
 }
+.shopping-keyboard-open .shopping-page.has-items {
+  padding-bottom:230px
+}
 .shopping-empty {
   padding:26px 8px;
   color:var(--ink-soft);
@@ -407,15 +410,6 @@ body.shopping-active {
 .shopping-keyboard-open .shopping-nav {
   display:none!important
 }
-.shopping-keyboard-open .topbar {
-  position:fixed;
-  top:var(--shell-inset,8px);
-  left:50%;
-  transform:translateX(-50%);
-  width:min(calc(100% - 2 * var(--shell-inset,8px)),980px);
-  z-index:20
-}
-
 @media(max-width:430px) {
   .shopping-grid {
     gap:8px
