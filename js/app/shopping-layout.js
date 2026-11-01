@@ -26,6 +26,13 @@ export function setupShoppingLayout() {
 
   const updateLayout = () => {
     layoutFrame = 0;
+    const viewportBottom = viewport
+      ? viewport.offsetTop + viewport.height
+      : window.innerHeight;
+    document.body.style.setProperty(
+      '--shopping-viewport-bottom-offset',
+      `${window.innerHeight - viewportBottom}px`,
+    );
     positionSearch();
 
     const headerBottom = header.getBoundingClientRect().bottom;
@@ -72,6 +79,7 @@ export function setupShoppingLayout() {
   resizeObserver.observe(searchWrap);
   window.addEventListener('resize', scheduleLayout);
   window.addEventListener('orientationchange', scheduleLayout);
+  window.addEventListener('pageshow', scheduleLayout);
   viewport?.addEventListener('resize', scheduleLayout);
   viewport?.addEventListener('scroll', scheduleLayout);
   document.addEventListener('scroll', scheduleLayout, true);
@@ -88,6 +96,7 @@ export function setupShoppingLayout() {
     resizeObserver.disconnect();
     window.removeEventListener('resize', scheduleLayout);
     window.removeEventListener('orientationchange', scheduleLayout);
+    window.removeEventListener('pageshow', scheduleLayout);
     viewport?.removeEventListener('resize', scheduleLayout);
     viewport?.removeEventListener('scroll', scheduleLayout);
     document.removeEventListener('scroll', scheduleLayout, true);
@@ -100,5 +109,6 @@ export function setupShoppingLayout() {
     searchWrap.style.removeProperty('bottom');
     document.body.style.removeProperty('--shopping-content-top');
     document.body.style.removeProperty('--shopping-content-bottom');
+    document.body.style.removeProperty('--shopping-viewport-bottom-offset');
   });
 }
