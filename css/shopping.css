@@ -188,7 +188,7 @@
   position:fixed;
   z-index:11;
   left:50%;
-  bottom:env(safe-area-inset-bottom, 0px);
+  bottom:calc(env(safe-area-inset-bottom) + var(--shopping-viewport-bottom-offset, 0px));
   transform:translateX(-50%);
   display:flex;
   gap:6px;
