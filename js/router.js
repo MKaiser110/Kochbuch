@@ -10,6 +10,7 @@
 import { disableWakeLock } from './services/wake-lock.js';
 import { closeSheet } from './sheets/sheet.js';
 import { runViewCleanup, startNavigation } from './view-lifecycle.js';
+import { setupShoppingLayout } from './app/shopping-layout.js';
 import { renderOverview } from './views/overview.js';
 import { renderDetail } from './views/detail.js';
 import { renderCook } from './views/cook-mode.js';
@@ -54,6 +55,7 @@ function route() {
   } else if (hash === 'shopping') {
     btnBack.hidden = true;
     renderShopping();
+    setupShoppingLayout();
   } else if (hash.startsWith('recipe/')) {
     btnBack.hidden = false;
     renderDetail(hash.slice('recipe/'.length));

@@ -134,3 +134,29 @@ body {
   background: var(--ink);
   color: var(--surface);
 }
+
+body.shopping-active .topbar {
+  position: fixed;
+  top: var(--shell-inset, 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2 * var(--shell-inset, 8px)), 980px);
+  z-index: 20;
+}
+
+body.shopping-active #app {
+  position: fixed;
+  top: var(--shopping-content-top, 84px);
+  right: auto;
+  bottom: var(--shopping-content-bottom, 140px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(calc(100% - 2 * var(--shell-inset, 8px)), 980px);
+  height: auto;
+  min-height: 0;
+  flex: none;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}

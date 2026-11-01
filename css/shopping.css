@@ -1,10 +1,7 @@
 .shopping-page {
   max-width:720px;
   margin:auto;
-  padding-bottom:0
-}
-.shopping-page.has-items {
-  padding-bottom:145px
+  padding-bottom:16px
 }
 .shopping-section {
   margin:20px 0
@@ -229,10 +226,8 @@ body.shopping-active:not(.shopping-keyboard-open)::after {
   color:var(--surface)
 }
 body.shopping-active {
-  padding-bottom:0
-}
-.shopping-keyboard-open .shopping-page.has-items {
-  padding-bottom:230px
+  padding-bottom:0;
+  overflow:hidden
 }
 .shopping-empty {
   padding:26px 8px;
