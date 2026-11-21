@@ -14,6 +14,8 @@ export function setupShoppingLayout() {
   let settleTimer = 0;
   let blurTimer = 0;
   let viewportHeightOnFocus = 0;
+  let touchStartX = 0;
+  let touchStartY = 0;
 
   const updateLayout = () => {
     layoutFrame = 0;
@@ -48,6 +50,38 @@ export function setupShoppingLayout() {
     }, 280);
   };
 
+  const onTouchStart = event => {
+    if (event.touches.length !== 1) return;
+    touchStartX = event.touches[0].clientX;
+    touchStartY = event.touches[0].clientY;
+  };
+
+  const onTouchMove = event => {
+    if (event.touches.length !== 1) return;
+    const touch = event.touches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+
+    const target = event.target instanceof Element ? event.target : event.target.parentElement;
+    const horizontalArea = target?.closest('.shopping-suggestions');
+    if (horizontalArea) {
+      if (Math.abs(deltaY) > Math.abs(deltaX)) event.preventDefault();
+      return;
+    }
+
+    const scrollArea = target?.closest('#app, .shopping-catalog-list, .ingredient-choice-grid, dialog[open]');
+    if (!scrollArea) {
+      event.preventDefault();
+      return;
+    }
+
+    const atTop = scrollArea.scrollTop <= 0;
+    const atBottom = scrollArea.scrollTop + scrollArea.clientHeight >= scrollArea.scrollHeight - 1;
+    if ((deltaY > 0 && atTop) || (deltaY < 0 && atBottom)) event.preventDefault();
+  };
+
   const onSearchFocus = () => {
     if (blurTimer) {
       clearTimeout(blurTimer);
@@ -79,6 +113,8 @@ export function setupShoppingLayout() {
   window.addEventListener('pageshow', scheduleLayout);
   viewport?.addEventListener('resize', scheduleLayout);
   viewport?.addEventListener('scroll', scheduleLayout);
+  document.addEventListener('touchstart', onTouchStart, { capture: true, passive: true });
+  document.addEventListener('touchmove', onTouchMove, { capture: true, passive: false });
   search.addEventListener('focus', onSearchFocus);
   search.addEventListener('blur', onSearchBlur);
   search.addEventListener('input', scheduleLayout);
@@ -93,6 +129,8 @@ export function setupShoppingLayout() {
     window.removeEventListener('pageshow', scheduleLayout);
     viewport?.removeEventListener('resize', scheduleLayout);
     viewport?.removeEventListener('scroll', scheduleLayout);
+    document.removeEventListener('touchstart', onTouchStart, true);
+    document.removeEventListener('touchmove', onTouchMove, true);
     search.removeEventListener('focus', onSearchFocus);
     search.removeEventListener('blur', onSearchBlur);
     search.removeEventListener('input', scheduleLayout);
