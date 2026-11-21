@@ -45,3 +45,5 @@ python -m http.server 8000
 - Die Einkaufslistenansicht liegt in `js/views/shopping.js`; Produktkatalog, Zutatenübernahme, Dialoge und Produktdarstellung sind in separate Module aufgeteilt.
 
 Mit Node.js kannst du die automatisierten Tests über `npm test` starten. Die Tests liegen in `tests/` und werden direkt von Node.js ausgeführt.
+
+Bei jeder Änderung am App-Code muss die App-Version erhöht werden. Dafür `npm version patch --no-git-tag-version` verwenden (für größere Releases entsprechend `minor` oder `major`); dadurch bleibt auch `package-lock.json` synchron. Zusätzlich bei jedem App-Code-Release den `CACHE_NAME` in `sw.js` erhöhen, damit installierte PWAs den Offline-Cache erneuern.

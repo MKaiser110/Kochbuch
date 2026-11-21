@@ -45,10 +45,10 @@
 .data-menu-sheet { height: min(420px, var(--overlay-content-max-height, min(88dvh, 820px))); }
 .menu-sheet h2 { min-height: 24px; flex: 0 0 auto; }
 .data-menu-footer {
-  display: flex;
+  display: grid;
   flex: 0 0 44px;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   margin-top: auto;
 }
 .data-version {
@@ -58,6 +58,7 @@
 .data-menu-footer .sheet-cancel {
   width: auto;
   flex: 0 0 auto;
+  justify-self: center;
   margin: 0;
   padding-inline: 14px;
 }

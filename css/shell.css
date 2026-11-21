@@ -142,7 +142,7 @@ body.shopping-keyboard-open #app-shell {
   position: fixed;
   z-index: 11;
   left: 50%;
-  bottom: 0;
+  bottom: calc(10px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   display: flex;
   gap: 6px;
