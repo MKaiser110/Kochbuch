@@ -8,6 +8,13 @@ body {
   overflow: hidden;
 }
 
+body.shopping-search-focused {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
 @media (display-mode: standalone) {
   html, body {
     height: calc(100vh + env(safe-area-inset-bottom, 0px));
