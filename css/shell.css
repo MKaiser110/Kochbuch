@@ -190,7 +190,7 @@ body.shopping-active #app {
   inset: auto;
   transform: none;
   width: min(100%, 980px);
-  height: auto;
+  height: 0;
   min-height: 0;
   flex: 1 1 0;
   overflow-y: auto;
@@ -200,22 +200,20 @@ body.shopping-active #app {
 }
 
 body.shopping-active #app-shell {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  display: flex;
 }
 
-body.shopping-active .topbar { grid-row: 1; }
-body.shopping-active #connection-status { grid-row: 2; }
-body.shopping-active #app { grid-row: 3; }
-body.shopping-active .shopping-search-wrap { grid-row: 4; }
-body.shopping-active .shopping-nav { grid-row: 5; }
+body.shopping-active #connection-status,
+body.shopping-active .shopping-search-wrap,
+body.shopping-active .shopping-nav {
+  flex: 0 0 auto;
+}
 
 body.shopping-active .shopping-nav {
   position: static;
   inset: auto;
   transform: none;
-  justify-self: center;
+  align-self: center;
   margin: 6px auto 10px;
 }
 
