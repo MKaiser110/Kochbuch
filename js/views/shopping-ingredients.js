@@ -4,6 +4,7 @@ import {
   activateShoppingStyles,
   createProductTile,
   showShoppingDialog,
+  showShoppingToast,
 } from './shopping-components.js';
 
 export function chooseRecipeIngredients(ingredients) {
@@ -74,7 +75,8 @@ export function chooseRecipeIngredients(ingredients) {
   updateSelection();
   dialog.querySelector('[data-cancel]').addEventListener('click', () => dialog.close());
   addButton.addEventListener('click', () => {
-    choices.querySelectorAll('.ingredient-choice-tile.selected').forEach(button => {
+    const selectedButtons = choices.querySelectorAll('.ingredient-choice-tile.selected');
+    selectedButtons.forEach(button => {
       const ingredient = recipeIngredients[Number(button.dataset.index)];
       const product = {
         id: `new-${normalizeShoppingName(ingredient.name)}`,
@@ -90,7 +92,7 @@ export function chooseRecipeIngredients(ingredients) {
       );
     });
     dialog.close();
-    alert('Ausgewählte Zutaten wurden zur Einkaufsliste hinzugefügt.');
+    showShoppingToast(selectedButtons.length);
   });
 
   showShoppingDialog(dialog);

@@ -243,6 +243,75 @@ body.shopping-keyboard-open .shopping-search-wrap {
   color:var(--ink-soft);
   text-align:center
 }
+.shopping-toast {
+  position:fixed;
+  z-index:30;
+  right:50%;
+  bottom:calc(18px + env(safe-area-inset-bottom,0px));
+  display:flex;
+  align-items:center;
+  width:min(calc(100vw - 28px),420px);
+  min-height:72px;
+  gap:12px;
+  padding:12px 12px 12px 14px;
+  border:1px solid var(--line-strong);
+  border-radius:18px;
+  background:var(--surface);
+  box-shadow:0 14px 40px rgb(0 0 0 / 22%);
+  transform:translate(50%, calc(100% + 24px));
+  opacity:0;
+  transition:transform 220ms ease, opacity 220ms ease
+}
+.shopping-toast.visible {
+  transform:translate(50%,0);
+  opacity:1
+}
+.shopping-toast-icon {
+  display:grid;
+  width:38px;
+  height:38px;
+  flex:0 0 38px;
+  place-items:center;
+  border-radius:50%;
+  background:var(--accent);
+  color:var(--accent-ink)
+}
+.shopping-toast-icon svg {
+  width:21px;
+  height:21px;
+  stroke:currentColor;
+  stroke-width:2.2;
+  stroke-linecap:round;
+  stroke-linejoin:round
+}
+.shopping-toast-text {
+  display:flex;
+  min-width:0;
+  flex:1;
+  flex-direction:column;
+  gap:2px
+}
+.shopping-toast-text strong {
+  font-size:.92rem
+}
+.shopping-toast-text > span {
+  color:var(--ink-soft);
+  font-size:.82rem
+}
+.shopping-toast-action {
+  min-height:42px;
+  padding:8px 10px;
+  border:0;
+  border-radius:11px;
+  background:var(--accent-soft);
+  color:var(--ink);
+  font-size:.82rem;
+  font-weight:700;
+  cursor:pointer
+}
+.shopping-styles-ready .shopping-toast {
+  bottom:calc(82px + env(safe-area-inset-bottom,0px))
+}
 .shopping-dialog {
   width:min(540px,calc(100vw - 30px));
   max-height:82vh;
