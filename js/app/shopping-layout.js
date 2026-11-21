@@ -17,18 +17,23 @@ export function setupShoppingLayout() {
 
   const updateLayout = () => {
     layoutFrame = 0;
-    const viewportBottom = (viewport?.offsetTop || 0) + (viewport?.height || window.innerHeight);
     const keyboardOpen = document.activeElement === search
       && viewportHeightOnFocus > 0
       && viewportHeightOnFocus - (viewport?.height || window.innerHeight) > 120;
+    const searchFocused = document.body.classList.contains('shopping-search-focused');
     document.body.classList.toggle('shopping-keyboard-open', keyboardOpen);
-    if (keyboardOpen) {
+    if (searchFocused) {
       shell.style.setProperty(
-        '--shopping-keyboard-bottom',
-        `${Math.max(0, viewportHeightOnFocus - viewportBottom)}px`
+        '--shell-viewport-top',
+        `${viewport?.offsetTop || 0}px`
+      );
+      shell.style.setProperty(
+        '--shell-viewport-height',
+        `${viewport?.height || window.innerHeight}px`
       );
     } else {
-      shell.style.removeProperty('--shopping-keyboard-bottom');
+      shell.style.removeProperty('--shell-viewport-top');
+      shell.style.removeProperty('--shell-viewport-height');
     }
   };
 
@@ -63,7 +68,8 @@ export function setupShoppingLayout() {
       document.body.classList.remove('shopping-search-focused');
       document.body.classList.remove('shopping-keyboard-open');
       viewportHeightOnFocus = 0;
-      shell.style.removeProperty('--shopping-keyboard-bottom');
+      shell.style.removeProperty('--shell-viewport-top');
+      shell.style.removeProperty('--shell-viewport-height');
       scheduleLayout();
     }, 240);
   };
@@ -93,6 +99,7 @@ export function setupShoppingLayout() {
     document.body.classList.remove('shopping-keyboard-open');
     document.body.classList.remove('shopping-search-focused');
     viewportHeightOnFocus = 0;
-    shell.style.removeProperty('--shopping-keyboard-bottom');
+    shell.style.removeProperty('--shell-viewport-top');
+    shell.style.removeProperty('--shell-viewport-height');
   });
 }

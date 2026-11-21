@@ -44,6 +44,12 @@ body.shopping-search-focused {
   #app-shell { bottom: calc(0px - var(--shell-safe-area-bottom)); }
 }
 
+body.shopping-search-focused #app-shell {
+  bottom: auto;
+  height: calc(var(--shell-viewport-height, 100vh) + var(--shell-safe-area-bottom));
+  height: calc(var(--shell-viewport-height, 100dvh) + var(--shell-safe-area-bottom));
+}
+
 .topbar, #app {
   width: min(100%, 980px);
   margin-inline: auto;
@@ -196,10 +202,6 @@ body.shopping-active #app-shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
-}
-
-body.shopping-keyboard-open #app-shell {
-  grid-template-rows: auto auto minmax(0, 1fr) auto var(--shopping-keyboard-bottom, 0px);
 }
 
 body.shopping-active .topbar { grid-row: 1; }
