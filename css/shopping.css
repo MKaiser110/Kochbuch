@@ -268,7 +268,8 @@ body.shopping-keyboard-open .shopping-search-wrap {
 }
 .catalog-dialog > h2 {
   margin:0 0 6px;
-  font-size:1.35rem
+  font-size:1.35rem;
+  outline:none
 }
 .catalog-dialog > p {
   margin:0 0 18px;
@@ -594,7 +595,7 @@ body.shopping-keyboard-open .shopping-search-wrap {
     padding-inline:10px
   }
   .shopping-catalog-row {
-    grid-template-columns:28px 30px minmax(0,1fr) auto;
+    grid-template-columns:30px minmax(0,1fr) auto;
     gap:6px;
     padding-inline:8px
   }

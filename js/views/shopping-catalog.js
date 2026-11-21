@@ -20,7 +20,7 @@ export function openProductCatalog() {
   const dialog = document.createElement('dialog');
   dialog.className = 'shopping-dialog catalog-dialog';
   dialog.innerHTML = `
-    <h2>Produktkatalog</h2>
+    <h2 tabindex="-1">Produktkatalog</h2>
     <p>Produkte verwalten, hinzufügen oder als Datei sichern.</p>
     <div class="shopping-catalog-list"></div>
     <div class="shopping-dialog-actions">
@@ -170,6 +170,7 @@ export function openProductCatalog() {
   });
 
   showShoppingDialog(dialog);
+  dialog.querySelector('h2').focus({ preventScroll: true });
 }
 
 function createCatalogRow(product, parentDialog, renderCatalog) {
