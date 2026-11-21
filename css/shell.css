@@ -8,6 +8,13 @@ body {
   overflow: hidden;
 }
 
+@media (display-mode: standalone) {
+  html, body {
+    height: calc(100vh + env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 #app-shell {
   position: fixed;
   top: var(--shell-viewport-top, 0px);
@@ -24,6 +31,10 @@ body {
   padding: var(--shell-inset) var(--shell-inset) var(--shell-safe-area-bottom);
   overflow: hidden;
   background: var(--surface);
+}
+
+@media (display-mode: standalone) {
+  #app-shell { bottom: calc(0px - var(--shell-safe-area-bottom)); }
 }
 
 body.shopping-keyboard-open #app-shell {

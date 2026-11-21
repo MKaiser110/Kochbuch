@@ -1,5 +1,6 @@
 // data-menu.js — Sheet für Export und Import von Rezepten (JSON-Dateien).
 
+import packageInfo from '../../package.json' with { type: 'json' };
 import { openSheet, closeSheet, confirmSheet } from './sheet.js';
 import {
   exportRecipesToFile,
@@ -11,6 +12,7 @@ import {
 export function openDataMenu(onImported, initialStatus = '') {
   openSheet('tpl-data-menu', node => {
     const status = node.querySelector('#data-status');
+    node.querySelector('#data-version').value = `v${packageInfo.version}`;
     status.textContent = initialStatus;
 
     node.querySelector('#data-export').addEventListener('click', async () => {

@@ -206,8 +206,12 @@
 </template>
 
 <template id="tpl-data-menu">
-  <div class="sheet menu-sheet">
+  <div class="sheet menu-sheet data-menu-sheet">
     <h2>Rezepte sichern</h2>
+    <label class="data-version">
+      <span>App-Version</span>
+      <input id="data-version" type="text" readonly aria-label="App-Version">
+    </label>
     <button id="data-export" class="sheet-option">
       <svg class="option-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 17v3h14v-3"></path></svg>
       <span>Alle Rezepte exportieren (Datei)</span>
