@@ -65,6 +65,8 @@ export function setupShoppingLayout() {
     touchStartY = touch.clientY;
 
     const target = event.target instanceof Element ? event.target : event.target.parentElement;
+    if (target?.closest('#shopping-search')) return;
+
     const horizontalArea = target?.closest('.shopping-suggestions');
     if (horizontalArea) {
       if (Math.abs(deltaY) > Math.abs(deltaX)) event.preventDefault();
