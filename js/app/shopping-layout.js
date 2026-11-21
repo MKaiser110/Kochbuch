@@ -13,7 +13,11 @@ export function setupShoppingLayout() {
   let layoutFrame = 0;
   let settleTimer = 0;
   let blurTimer = 0;
-  let viewportHeightOnFocus = 0;
+  let viewportHeightBeforeKeyboard = Math.max(
+    window.innerHeight,
+    viewport?.height || 0
+  );
+  let windowWidthBeforeResize = window.innerWidth;
   let touchStartX = 0;
   let touchStartY = 0;
 
@@ -21,9 +25,15 @@ export function setupShoppingLayout() {
     layoutFrame = 0;
     const viewportTop = viewport?.offsetTop || 0;
     const viewportHeight = viewport?.height || window.innerHeight;
-    const keyboardOpen = document.activeElement === search
-      && viewportHeightOnFocus > 0
-      && viewportHeightOnFocus - viewportHeight > 120;
+    const searchHasFocus = document.activeElement === search;
+    if (window.innerWidth !== windowWidthBeforeResize) {
+      windowWidthBeforeResize = window.innerWidth;
+      viewportHeightBeforeKeyboard = Math.max(window.innerHeight, viewportHeight);
+    } else if (!searchHasFocus) {
+      viewportHeightBeforeKeyboard = Math.max(window.innerHeight, viewportHeight);
+    }
+    const keyboardOpen = searchHasFocus
+      && viewportHeightBeforeKeyboard - viewportHeight > 120;
     const searchFocused = document.body.classList.contains('shopping-search-focused');
     document.body.classList.toggle('shopping-keyboard-open', keyboardOpen);
     if (searchFocused) {
@@ -94,7 +104,6 @@ export function setupShoppingLayout() {
       clearTimeout(blurTimer);
       blurTimer = 0;
     }
-    viewportHeightOnFocus = viewport?.height || window.innerHeight;
     document.body.classList.add('shopping-search-focused');
     document.body.classList.remove('shopping-keyboard-open');
     scheduleLayout();
@@ -108,7 +117,6 @@ export function setupShoppingLayout() {
 
       document.body.classList.remove('shopping-search-focused');
       document.body.classList.remove('shopping-keyboard-open');
-      viewportHeightOnFocus = 0;
       shell.style.removeProperty('--shell-viewport-top');
       shell.style.removeProperty('--shell-viewport-height');
       shell.style.removeProperty('--shopping-search-top');
@@ -144,7 +152,6 @@ export function setupShoppingLayout() {
     search.removeEventListener('input', scheduleLayout);
     document.body.classList.remove('shopping-keyboard-open');
     document.body.classList.remove('shopping-search-focused');
-    viewportHeightOnFocus = 0;
     shell.style.removeProperty('--shell-viewport-top');
     shell.style.removeProperty('--shell-viewport-height');
     shell.style.removeProperty('--shopping-search-top');
