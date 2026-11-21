@@ -209,3 +209,8 @@ body.shopping-active .shopping-nav {
   justify-self: center;
   margin: 6px auto 10px;
 }
+
+body:not(.shopping-active) .shopping-nav {
+  position: absolute;
+  bottom: calc(var(--shell-safe-area-bottom) + 10px);
+}
