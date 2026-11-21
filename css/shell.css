@@ -207,5 +207,5 @@ body.shopping-active .shopping-nav {
   inset: auto;
   transform: none;
   justify-self: center;
-  margin: 6px auto 0;
+  margin: 6px auto 10px;
 }

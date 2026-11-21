@@ -12,7 +12,7 @@ import {
 export function openDataMenu(onImported, initialStatus = '') {
   openSheet('tpl-data-menu', node => {
     const status = node.querySelector('#data-status');
-    node.querySelector('#data-version').value = `v${packageInfo.version}`;
+    node.querySelector('#data-version').textContent = `v${packageInfo.version}`;
     status.textContent = initialStatus;
 
     node.querySelector('#data-export').addEventListener('click', async () => {

@@ -44,24 +44,22 @@
 }
 .data-menu-sheet { height: min(420px, var(--overlay-content-max-height, min(88dvh, 820px))); }
 .menu-sheet h2 { min-height: 24px; flex: 0 0 auto; }
-.data-version {
-  display: grid;
-  flex: 0 0 auto;
-  grid-template-columns: auto minmax(0, 1fr);
+.data-menu-footer {
+  display: flex;
+  flex: 0 0 44px;
   align-items: center;
-  gap: 10px;
-  margin: 0 0 4px;
-  color: var(--ink-soft);
-  font-size: var(--text-sm);
+  justify-content: space-between;
+  margin-top: auto;
 }
-.data-version input {
-  min-width: 0;
-  height: 34px;
-  padding: 6px 10px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--surface-soft);
-  color: var(--ink);
+.data-version {
+  color: var(--ink-soft);
+  font-size: .72rem;
+}
+.data-menu-footer .sheet-cancel {
+  width: auto;
+  flex: 0 0 auto;
+  margin: 0;
+  padding-inline: 14px;
 }
 .menu-sheet .sheet-option {
   height: 56px;
