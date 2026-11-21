@@ -11,6 +11,7 @@ export function setupShoppingLayout() {
   }
 
   let layoutFrame = 0;
+  let settleTimer = 0;
   let blurTimer = 0;
   let viewportHeightOnFocus = 0;
 
@@ -27,6 +28,12 @@ export function setupShoppingLayout() {
   const scheduleLayout = () => {
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
     layoutFrame = requestAnimationFrame(updateLayout);
+    if (settleTimer) clearTimeout(settleTimer);
+    settleTimer = window.setTimeout(() => {
+      settleTimer = 0;
+      if (layoutFrame) cancelAnimationFrame(layoutFrame);
+      updateLayout();
+    }, 280);
   };
 
   const onSearchFocus = () => {
@@ -62,10 +69,12 @@ export function setupShoppingLayout() {
   viewport?.addEventListener('scroll', scheduleLayout);
   search.addEventListener('focus', onSearchFocus);
   search.addEventListener('blur', onSearchBlur);
+  search.addEventListener('input', scheduleLayout);
   scheduleLayout();
 
   setViewCleanup(() => {
     if (layoutFrame) cancelAnimationFrame(layoutFrame);
+    if (settleTimer) clearTimeout(settleTimer);
     if (blurTimer) clearTimeout(blurTimer);
     window.removeEventListener('resize', scheduleLayout);
     window.removeEventListener('orientationchange', scheduleLayout);
@@ -74,6 +83,7 @@ export function setupShoppingLayout() {
     viewport?.removeEventListener('scroll', scheduleLayout);
     search.removeEventListener('focus', onSearchFocus);
     search.removeEventListener('blur', onSearchBlur);
+    search.removeEventListener('input', scheduleLayout);
     document.body.classList.remove('shopping-keyboard-open');
     document.body.classList.remove('shopping-search-focused');
     viewportHeightOnFocus = 0;
