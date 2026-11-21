@@ -347,6 +347,31 @@ body.shopping-keyboard-open .shopping-search-wrap {
   flex:1;
   margin:0
 }
+.catalog-category-toggle {
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:var(--surface);
+  color:var(--ink-soft);
+  cursor:pointer
+}
+.catalog-category-toggle::before {
+  content:'';
+  width:8px;
+  height:8px;
+  border-right:2px solid currentColor;
+  border-bottom:2px solid currentColor;
+  transform:rotate(225deg) translate(-1px,-1px);
+  transition:transform 160ms ease
+}
+.catalog-category-toggle.collapsed::before {
+  transform:rotate(45deg) translate(-1px,-1px)
+}
 .catalog-category-name-input {
   flex:1;
   min-width:0;

@@ -1,6 +1,7 @@
 const STORAGE_KEY = 'kochbuch-shopping-v1';
 const CATALOG_STORAGE_KEY = 'kochbuch-products-v1';
 const CATALOG_CATEGORY_KEY = 'kochbuch-product-categories-v1';
+const CATALOG_COLLAPSED_KEY = 'kochbuch-product-categories-collapsed-v1';
 
 const defaultProducts = [
   ['Obst & Gemüse','Apfel','🍎'],['Obst & Gemüse','Banane','🍌'],['Obst & Gemüse','Zitrone','🍋'],['Obst & Gemüse','Tomate','🍅'],['Obst & Gemüse','Kartoffel','🥔'],['Obst & Gemüse','Zwiebel','🧅'],['Obst & Gemüse','Knoblauch','🧄'],['Obst & Gemüse','Karotte','🥕'],['Obst & Gemüse','Paprika','🫑'],['Obst & Gemüse','Gurke','🥒'],['Obst & Gemüse','Brokkoli','🥦'],['Obst & Gemüse','Salat','🥬'],['Obst & Gemüse','Champignons','🍄'],['Obst & Gemüse','Avocado','🥑'],
@@ -41,6 +42,10 @@ catalogCategories = [
 ].filter((category, index, all) => all.indexOf(category) === index);
 if (!catalogCategories.length) catalogCategories = ['Sonstiges'];
 
+export let collapsedCatalogCategories = readStoredArray(CATALOG_COLLAPSED_KEY, []);
+collapsedCatalogCategories = collapsedCatalogCategories.filter(category =>
+  typeof category === 'string');
+
 export function removeShoppingProduct(id) {
   products = products.filter(product => product.id !== id);
 }
@@ -49,6 +54,7 @@ export function saveShoppingState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(products));
   localStorage.setItem(CATALOG_CATEGORY_KEY, JSON.stringify(catalogCategories));
+  localStorage.setItem(CATALOG_COLLAPSED_KEY, JSON.stringify(collapsedCatalogCategories));
 }
 
 export function normalizeShoppingName(value) {

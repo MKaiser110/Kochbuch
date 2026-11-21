@@ -1,6 +1,7 @@
 import {
   items,
   catalogCategories,
+  collapsedCatalogCategories,
   normalizeShoppingName,
   products,
   removeShoppingProduct,
@@ -52,10 +53,25 @@ export function openProductCatalog() {
       heading.className = 'catalog-category-heading';
       heading.innerHTML = `
         <button type="button" class="catalog-drag-handle catalog-category-drag" aria-label="Kategorie verschieben"></button>
+        <button type="button" class="catalog-category-toggle" aria-label="Kategorie einklappen" aria-expanded="true"></button>
         <h3>${escapeHtml(category)}</h3>
         <button type="button" class="catalog-category-remove" aria-label="Kategorie entfernen" title="Kategorie entfernen">×</button>
       `;
       heading.querySelector('.catalog-category-remove').addEventListener('click', () => removeCatalogCategory(category));
+      const toggle = heading.querySelector('.catalog-category-toggle');
+      const collapsed = collapsedCatalogCategories.includes(category);
+      setCategoryCollapsed(toggle, grid, collapsed);
+      toggle.addEventListener('click', () => {
+        const nextCollapsed = !collapsedCatalogCategories.includes(category);
+        setCategoryCollapsed(toggle, grid, nextCollapsed);
+        if (nextCollapsed) {
+          if (!collapsedCatalogCategories.includes(category)) collapsedCatalogCategories.push(category);
+        } else {
+          const index = collapsedCatalogCategories.indexOf(category);
+          if (index >= 0) collapsedCatalogCategories.splice(index, 1);
+        }
+        saveShoppingState();
+      });
       const grid = document.createElement('div');
       grid.className = 'catalog-grid';
 
@@ -124,15 +140,20 @@ export function openProductCatalog() {
       const data = JSON.parse(await fileInput.files[0].text());
       if (!Array.isArray(data.products)) throw new Error('INVALID_CATALOG');
       if (Array.isArray(data.categories)) {
-        data.categories.forEach(category => {
-          const name = String(category || '').trim();
-          if (name && !catalogCategories.includes(name)) catalogCategories.push(name);
-        });
+        const importedCategories = [...new Set(data.categories
+          .map(category => String(category || '').trim())
+          .filter(Boolean))];
+        catalogCategories.splice(
+          0,
+          catalogCategories.length,
+          ...importedCategories,
+          ...catalogCategories.filter(category => !importedCategories.includes(category)),
+        );
       }
       for (const product of data.products) {
         if (product.name && !products.some(item =>
           normalizeShoppingName(item.name) === normalizeShoppingName(product.name))) {
-          const category = String(product.category || 'Sonstiges');
+          const category = String(product.category || 'Sonstiges').trim() || 'Sonstiges';
           if (!catalogCategories.includes(category)) catalogCategories.push(category);
           products.push({
             id: crypto.randomUUID(),
@@ -261,6 +282,8 @@ function renameCatalogCategory(oldName, newName) {
   products.forEach(product => {
     if ((product.category || 'Sonstiges') === oldName) product.category = newName;
   });
+  const collapsedIndex = collapsedCatalogCategories.indexOf(oldName);
+  if (collapsedIndex >= 0) collapsedCatalogCategories[collapsedIndex] = newName;
   items.forEach(item => {
     if ((item.category || 'Sonstiges') === oldName) item.category = newName;
   });
@@ -271,6 +294,8 @@ function removeCatalogCategory(category) {
   if (!confirm(`Kategorie „${category}“ entfernen? Die Produkte werden nach „Sonstiges“ verschoben.`)) return;
   if (!catalogCategories.includes('Sonstiges')) catalogCategories.push('Sonstiges');
   catalogCategories.splice(catalogCategories.indexOf(category), 1);
+  const collapsedIndex = collapsedCatalogCategories.indexOf(category);
+  if (collapsedIndex >= 0) collapsedCatalogCategories.splice(collapsedIndex, 1);
   products.forEach(product => {
     if ((product.category || 'Sonstiges') === category) product.category = 'Sonstiges';
   });
@@ -480,4 +505,11 @@ function moveCatalogCategory(category, targetCategory, insertAfter) {
   catalogCategories.splice(from, 1);
   const adjustedTo = catalogCategories.indexOf(targetCategory);
   catalogCategories.splice(adjustedTo + (insertAfter ? 1 : 0), 0, category);
+}
+
+function setCategoryCollapsed(toggle, grid, collapsed) {
+  grid.hidden = collapsed;
+  toggle.classList.toggle('collapsed', collapsed);
+  toggle.setAttribute('aria-expanded', String(!collapsed));
+  toggle.setAttribute('aria-label', collapsed ? 'Kategorie aufklappen' : 'Kategorie einklappen');
 }
