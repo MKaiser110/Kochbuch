@@ -9,9 +9,18 @@
   --ink-soft: #686e73;
   --line: #eceeef;
   --line-strong: #dfe2e4;
+  --accent: #202122;
+  --accent-soft: #eceeef;
+  --accent-ink: #ffffff;
+  --selection-shadow: rgb(32 33 34 / 16%);
   --danger: #b54747;
   --danger-strong: #b54747;
   --focus: #42627f;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --shadow-soft: 0 12px 30px rgb(32 33 34 / 9%);
+  --shadow-floating: 0 18px 60px rgb(32 33 34 / 14%);
   --text-xs: .75rem;
   --text-sm: .875rem;
   --text-body: 1rem;
@@ -26,11 +35,17 @@
     --surface-soft: #25272a;
     --ink: #f2f3f4;
     --ink-soft: #b6bbc0;
+    --accent: #f2f3f4;
+    --accent-soft: #303236;
+    --accent-ink: #1b1c1e;
+    --selection-shadow: rgb(242 243 244 / 18%);
     --danger-strong: #9b4a4a;
     --focus: #9fc2e3;
     --line: #2c2e31;
     --line-strong: #3a3d40;
-      --danger: #ef8585;
+    --danger: #ef8585;
+    --shadow-soft: 0 12px 30px rgb(0 0 0 / 22%);
+    --shadow-floating: 0 18px 60px rgb(0 0 0 / 32%);
   }
 }
 
@@ -42,6 +57,7 @@ html { height: 100%; overflow: hidden; }
 button, input, select, textarea { color: inherit; font: inherit; }
 body input, body textarea, body select { font-size: 16px; }
 button { -webkit-tap-highlight-color: transparent; }
+::selection { background: var(--accent-soft); color: var(--accent); }
 
 body {
   margin: 0;

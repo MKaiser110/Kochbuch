@@ -27,7 +27,7 @@
 
 .servings-control { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; color: var(--ink-soft); font-size: var(--text-sm); }
 .wake-lock-toggle { display: flex; align-items: center; gap: 9px; min-height: 44px; margin-bottom: 20px; padding-block: 8px; color: var(--ink-soft); font-size: var(--text-sm); }
-.wake-lock-toggle input, .ingredient-checklist input { width: 18px; height: 18px; accent-color: var(--ink); }
+.wake-lock-toggle input, .ingredient-checklist input { width: 18px; height: 18px; accent-color: var(--accent); }
 .serv-btn {
   display: grid;
   width: 40px;
@@ -47,8 +47,8 @@
   padding: 13px 18px;
   border: 0;
   border-radius: 13px;
-  background: var(--ink);
-  color: var(--surface);
+  background: var(--accent);
+  color: var(--accent-ink);
   font-size: var(--text-body);
   font-weight: 550;
   cursor: pointer;

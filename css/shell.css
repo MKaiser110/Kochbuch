@@ -116,13 +116,13 @@ body.shopping-search-focused #app-shell {
   transition: background 150ms ease, transform 150ms ease;
 }
 #btn-data-menu { color: var(--ink-soft); }
-#btn-add { width: 48px; height: 48px; background: var(--ink); color: var(--surface); box-shadow: 0 3px 8px rgb(0 0 0 / 12%); }
+#btn-add { width: 48px; height: 48px; background: var(--accent); color: var(--accent-ink); box-shadow: 0 5px 14px var(--selection-shadow); }
 .icon-btn svg { width: 21px; height: 21px; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
 #btn-data-menu svg { width: 20px; height: 20px; fill: currentColor; stroke: none; }
 #btn-add svg { width: 20px; height: 20px; stroke-width: 1.8; }
 .icon-btn:active { transform: scale(.95); }
 .icon-btn:hover { background-color: var(--surface-soft); }
-#btn-add:hover { background-color: var(--ink); }
+#btn-add:hover { background-color: var(--accent); filter: brightness(.96); }
 #btn-back:not([hidden]) { margin-left: -8px; }
 
 #app {
@@ -172,8 +172,8 @@ body.shopping-search-focused #app-shell {
 }
 
 .shopping-nav button.active {
-  background: var(--ink);
-  color: var(--surface);
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 body.shopping-active .topbar {
