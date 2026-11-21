@@ -21,7 +21,12 @@ export function setupShoppingLayout() {
     const keyboardOpen = document.activeElement === search
       && viewportHeightOnFocus > 0
       && viewportHeightOnFocus - (viewport?.height || window.innerHeight) > 120;
+    const searchFocused = document.body.classList.contains('shopping-search-focused');
     document.body.classList.toggle('shopping-keyboard-open', keyboardOpen);
+    shell.style.setProperty(
+      '--shell-viewport-top',
+      `${searchFocused ? viewport?.offsetTop || 0 : 0}px`
+    );
     if (keyboardOpen) {
       shell.style.setProperty(
         '--shopping-keyboard-bottom',
@@ -63,6 +68,7 @@ export function setupShoppingLayout() {
       document.body.classList.remove('shopping-search-focused');
       document.body.classList.remove('shopping-keyboard-open');
       viewportHeightOnFocus = 0;
+      shell.style.setProperty('--shell-viewport-top', '0px');
       shell.style.removeProperty('--shopping-keyboard-bottom');
       scheduleLayout();
     }, 240);
@@ -93,6 +99,7 @@ export function setupShoppingLayout() {
     document.body.classList.remove('shopping-keyboard-open');
     document.body.classList.remove('shopping-search-focused');
     viewportHeightOnFocus = 0;
+    shell.style.removeProperty('--shell-viewport-top');
     shell.style.removeProperty('--shopping-keyboard-bottom');
   });
 }
