@@ -27,6 +27,11 @@ test('normalizes imported ingredients and removes exact duplicates only', () => 
     { amount: 200, unit: 'g', name: 'Mehl', category: null },
     { amount: 1, unit: null, name: 'Ei', category: null },
   ]);
+  assert.deepEqual(normalizeIngredients([
+    { amount: 100, unit: 'ml', name: 'Sahne', category: 'Für die Sauce' },
+  ]), [
+    { amount: 100, unit: 'ml', name: 'Sahne', category: 'Für die Sauce' },
+  ]);
   assert.deepEqual(normalizeSteps(['Teig gut verrühren. ', 'Teig gut verrühren.', 'Bei 180 Grad goldbraun backen.', 'I made it']), ['Teig gut verrühren.', 'Bei 180 Grad goldbraun backen.']);
   assert.deepEqual(normalizeSteps(['Soße abschmecken. ![![Image 72](https://example.com/pixel.png)](javascript:;)']), ['Soße abschmecken.']);
   const normalized = normalizeImportedRecipe({ description: 'unwanted', cuisine: 'unwanted', cookTime: 20, totalTime: 30 });

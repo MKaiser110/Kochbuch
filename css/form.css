@@ -58,11 +58,76 @@
   #recipe-form .recipe-form-actions { margin-inline: -18px; padding-inline: 18px; }
 }
 .ing-row, .step-row { display: flex; align-items: center; gap: 7px; margin-bottom: 9px; }
+.ingredient-form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.ingredient-form-actions .btn-secondary { width: 100%; }
+.ingredient-editor-block {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 9px;
+}
+.ingredient-editor-block.dragging { opacity: .35; }
+.ingredient-editor-block.drag-over-before::before,
+.ingredient-editor-block.drag-over-after::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ink);
+}
+.ingredient-editor-block.drag-over-before::before { top: -5px; }
+.ingredient-editor-block.drag-over-after::after { bottom: -5px; }
+.drag-handle {
+  width: 28px;
+  height: 40px;
+  flex: 0 0 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.drag-handle:active { cursor: grabbing; }
+.drag-handle::before {
+  content: '';
+  width: 6px;
+  height: 20px;
+  background-image: radial-gradient(circle, currentColor 1.4px, transparent 1.5px);
+  background-size: 6px 6px;
+  background-position: 0 1px;
+}
+.ingredient-category-row {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 7px 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface-soft);
+}
+.ingredient-category-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 34px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  font-weight: 650;
+}
 .ing-row input:not([type="file"]) { min-width: 0; margin-top: 0; padding-inline: 9px; }
+.ingredient-editor-block .ing-row { flex: 1; margin-bottom: 0; }
 .ing-row input:nth-child(1) { flex: 0 0 74px; }
 .ing-row input:nth-child(2) { flex: 0 0 78px; }
 .ing-row input:nth-child(3) { flex: 1; }
-.ing-row input:nth-child(4) { flex: 0 1 150px; }
 .step-row textarea { flex: 1; min-width: 0; overflow-y: hidden; resize: none; }
 .row-remove { width: 40px; height: 40px; flex: 0 0 auto; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font-size: 1.3rem; cursor: pointer; }
 .row-remove:hover { background: var(--surface-soft); }
@@ -79,8 +144,6 @@
   .ing-row { display: grid; grid-template-columns: 74px 78px minmax(0, 1fr) 40px; }
   .ing-row input:nth-child(1),
   .ing-row input:nth-child(2),
-  .ing-row input:nth-child(3),
-  .ing-row input:nth-child(4) { width: 100%; }
-  .ing-row input:nth-child(4) { grid-column: 1 / 4; grid-row: 2; }
-  .ing-row .row-remove { grid-column: 4; grid-row: 1 / 3; }
+  .ing-row input:nth-child(3) { width: 100%; }
+  .ing-row .row-remove { grid-column: 4; grid-row: 1; }
 }

@@ -117,17 +117,40 @@ function setupRows(recipe) {
 
   function addIngredientRow(ing = { amount: '', unit: '', name: '' }) {
     const n = rowCounter++;
+    const block = document.createElement('div');
+    block.className = 'ingredient-editor-block';
+    const handle = document.createElement('button');
+    handle.type = 'button';
+    handle.className = 'drag-handle';
+    handle.setAttribute('aria-label', 'Zutat verschieben');
     const row = document.createElement('div');
     row.className = 'ing-row';
     row.innerHTML = `
       <input class="ing-amount" type="text" inputmode="decimal" name="ing-amount-${n}" autocomplete="off" placeholder="Menge" value="${escapeHtml(String(ing.amount ?? ''))}">
       <input class="ing-unit" type="text" name="ing-unit-${n}" autocomplete="off" placeholder="Einheit" value="${escapeHtml(ing.unit ?? '')}">
       <input class="ing-name" type="text" name="ing-name-${n}" autocomplete="off" placeholder="Zutat" value="${escapeHtml(ing.name ?? '')}">
-      <input class="ing-category" type="text" name="ing-category-${n}" autocomplete="off" placeholder="Kategorie (optional)" value="${escapeHtml(ing.category ?? '')}">
       <button type="button" class="row-remove" aria-label="Entfernen">×</button>
     `;
-    row.querySelector('.row-remove').addEventListener('click', () => row.remove());
-    ingredientRows.appendChild(row);
+    row.querySelector('.row-remove').addEventListener('click', () => block.remove());
+    block.append(handle, row);
+    ingredientRows.appendChild(block);
+    setupBlockDrag(block, ingredientRows);
+  }
+
+  function addCategoryRow(name = '') {
+    const n = rowCounter++;
+    const block = document.createElement('div');
+    block.className = 'ingredient-editor-block ingredient-category-editor';
+    block.innerHTML = `
+      <button type="button" class="drag-handle" aria-label="Kategorie verschieben"></button>
+      <div class="ingredient-category-row">
+        <input class="ing-category" type="text" name="ing-category-${n}" autocomplete="off" placeholder="Kategorie, z. B. Für die Sauce" value="${escapeHtml(name)}">
+        <button type="button" class="row-remove" aria-label="Kategorie entfernen">×</button>
+      </div>
+    `;
+    block.querySelector('.row-remove').addEventListener('click', () => block.remove());
+    ingredientRows.appendChild(block);
+    setupBlockDrag(block, ingredientRows);
   }
 
   function addStepRow(text = '') {
@@ -145,13 +168,132 @@ function setupRows(recipe) {
     resizeStepField(textarea);
   }
 
-  (recipe.ingredients.length ? recipe.ingredients : [{ amount: '', unit: '', name: '' }]).forEach(addIngredientRow);
+  if (recipe.ingredients.length) {
+    let currentCategory = null;
+    recipe.ingredients.forEach(ing => {
+      const category = ing.category?.trim() || null;
+      if (category !== currentCategory) {
+        if (category) addCategoryRow(category);
+        currentCategory = category;
+      }
+      addIngredientRow(ing);
+    });
+  } else {
+    addIngredientRow();
+  }
   (recipe.steps.length ? recipe.steps : ['']).forEach(addStepRow);
 
   document.getElementById('add-ingredient-row').addEventListener('click', () => addIngredientRow());
+  document.getElementById('add-ingredient-category').addEventListener('click', () => addCategoryRow());
   document.getElementById('add-step-row').addEventListener('click', () => addStepRow());
 
   return { ingredientRows, stepRows };
+}
+
+function setupBlockDrag(block, container) {
+  const handle = block.querySelector('.drag-handle');
+  let dragged = null;
+  let pointerStart = null;
+  let ghost = null;
+
+  handle.draggable = true;
+  handle.addEventListener('dragstart', event => {
+    dragged = block;
+    block.classList.add('dragging');
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', 'ingredient-block');
+  });
+  handle.addEventListener('dragend', () => {
+    dragged = null;
+    block.classList.remove('dragging');
+    clearDragMarkers(container);
+  });
+
+  container.addEventListener('dragover', event => {
+    if (!dragged) return;
+    event.preventDefault();
+    const target = event.target.closest('.ingredient-editor-block');
+    if (!target || target === dragged) return;
+    clearDragMarkers(container);
+    const rect = target.getBoundingClientRect();
+    const insertAfter = event.clientY > rect.top + rect.height / 2;
+    target.classList.add(insertAfter ? 'drag-over-after' : 'drag-over-before');
+  });
+  container.addEventListener('drop', event => {
+    if (!dragged) return;
+    event.preventDefault();
+    const target = event.target.closest('.ingredient-editor-block');
+    if (target && target !== dragged) {
+      const rect = target.getBoundingClientRect();
+      moveBlock(dragged, target, event.clientY > rect.top + rect.height / 2);
+    }
+    clearDragMarkers(container);
+    dragged.classList.remove('dragging');
+    dragged = null;
+  });
+
+  handle.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'mouse') return;
+    pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
+    handle.setPointerCapture(event.pointerId);
+  });
+  handle.addEventListener('pointermove', event => {
+    if (!pointerStart || event.pointerId !== pointerStart.id) return;
+    const distance = Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y);
+    if (!ghost && distance < 6) return;
+    event.preventDefault();
+    if (!ghost) {
+      block.classList.add('dragging');
+      ghost = block.cloneNode(true);
+      ghost.classList.add('dragging');
+      ghost.style.position = 'fixed';
+      ghost.style.zIndex = '1000';
+      ghost.style.width = `${block.offsetWidth}px`;
+      ghost.style.pointerEvents = 'none';
+      ghost.style.opacity = '.85';
+      document.body.appendChild(ghost);
+    }
+    ghost.style.left = `${event.clientX - ghost.offsetWidth / 2}px`;
+    ghost.style.top = `${event.clientY - 20}px`;
+    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.ingredient-editor-block');
+    if (!target || target === block) return;
+    clearDragMarkers(container);
+    const rect = target.getBoundingClientRect();
+    target.classList.add(event.clientY > rect.top + rect.height / 2 ? 'drag-over-after' : 'drag-over-before');
+  });
+  handle.addEventListener('pointerup', event => {
+    if (!pointerStart || event.pointerId !== pointerStart.id) return;
+    if (ghost) {
+      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.ingredient-editor-block');
+      if (target && target !== block) {
+        const rect = target.getBoundingClientRect();
+        moveBlock(block, target, event.clientY > rect.top + rect.height / 2);
+      }
+      ghost.remove();
+      ghost = null;
+      block.classList.remove('dragging');
+      clearDragMarkers(container);
+    }
+    pointerStart = null;
+  });
+  handle.addEventListener('pointercancel', () => {
+    ghost?.remove();
+    ghost = null;
+    pointerStart = null;
+    block.classList.remove('dragging');
+    clearDragMarkers(container);
+  });
+}
+
+function moveBlock(dragged, target, insertAfter) {
+  if (insertAfter) target.after(dragged);
+  else target.before(dragged);
+}
+
+function clearDragMarkers(container) {
+  container.querySelectorAll('.ingredient-editor-block').forEach(block => {
+    block.classList.remove('drag-over-before', 'drag-over-after');
+  });
 }
 
 function resizeStepField(textarea) {
@@ -160,14 +302,23 @@ function resizeStepField(textarea) {
 }
 
 function readIngredients(ingredientRows) {
-  return [...ingredientRows.querySelectorAll('.ing-row')].map(row => {
+  let category = null;
+  const ingredients = [];
+  ingredientRows.querySelectorAll('.ingredient-editor-block').forEach(block => {
+    const categoryInput = block.querySelector('.ing-category');
+    if (categoryInput) {
+      category = categoryInput.value.trim() || null;
+      return;
+    }
+    const row = block.querySelector('.ing-row');
+    if (!row) return;
     const amountRaw = row.querySelector('.ing-amount').value.trim();
     const unit = row.querySelector('.ing-unit').value.trim() || null;
     const name = row.querySelector('.ing-name').value.trim();
-    const category = row.querySelector('.ing-category').value.trim() || null;
     const amount = amountRaw === '' ? null : parseFloat(amountRaw.replace(',', '.'));
-    return { amount: Number.isNaN(amount) ? null : amount, unit, name, category };
-  }).filter(i => i.name);
+    if (name) ingredients.push({ amount: Number.isNaN(amount) ? null : amount, unit, name, category });
+  });
+  return ingredients;
 }
 
 function readSteps(stepRows) {
