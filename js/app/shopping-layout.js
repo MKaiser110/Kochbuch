@@ -19,23 +19,28 @@ export function setupShoppingLayout() {
 
   const updateLayout = () => {
     layoutFrame = 0;
+    const viewportTop = viewport?.offsetTop || 0;
+    const viewportHeight = viewport?.height || window.innerHeight;
     const keyboardOpen = document.activeElement === search
       && viewportHeightOnFocus > 0
-      && viewportHeightOnFocus - (viewport?.height || window.innerHeight) > 120;
+      && viewportHeightOnFocus - viewportHeight > 120;
     const searchFocused = document.body.classList.contains('shopping-search-focused');
     document.body.classList.toggle('shopping-keyboard-open', keyboardOpen);
     if (searchFocused) {
-      shell.style.setProperty(
-        '--shell-viewport-top',
-        `${viewport?.offsetTop || 0}px`
-      );
-      shell.style.setProperty(
-        '--shell-viewport-height',
-        `${viewport?.height || window.innerHeight}px`
-      );
+      shell.style.setProperty('--shell-viewport-top', `${viewportTop}px`);
+      shell.style.setProperty('--shell-viewport-height', `${viewportHeight}px`);
     } else {
       shell.style.removeProperty('--shell-viewport-top');
       shell.style.removeProperty('--shell-viewport-height');
+    }
+    if (keyboardOpen) {
+      const searchTop = Math.max(
+        viewportTop,
+        viewportTop + viewportHeight - searchWrap.offsetHeight
+      );
+      shell.style.setProperty('--shopping-search-top', `${searchTop}px`);
+    } else {
+      shell.style.removeProperty('--shopping-search-top');
     }
   };
 
@@ -106,6 +111,7 @@ export function setupShoppingLayout() {
       viewportHeightOnFocus = 0;
       shell.style.removeProperty('--shell-viewport-top');
       shell.style.removeProperty('--shell-viewport-height');
+      shell.style.removeProperty('--shopping-search-top');
       scheduleLayout();
     }, 240);
   };
@@ -141,5 +147,6 @@ export function setupShoppingLayout() {
     viewportHeightOnFocus = 0;
     shell.style.removeProperty('--shell-viewport-top');
     shell.style.removeProperty('--shell-viewport-height');
+    shell.style.removeProperty('--shopping-search-top');
   });
 }
