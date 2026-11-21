@@ -8,11 +8,12 @@ body {
   overflow: hidden;
 }
 
-body.shopping-search-focused {
+body.shopping-active {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
+  overscroll-behavior: none;
 }
 
 @media (display-mode: standalone) {
