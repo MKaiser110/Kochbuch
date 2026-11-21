@@ -25,7 +25,7 @@ export function setupShoppingLayout() {
     if (keyboardOpen) {
       shell.style.setProperty(
         '--shopping-keyboard-bottom',
-        `${Math.max(0, window.innerHeight - viewportBottom)}px`
+        `${Math.max(0, viewportHeightOnFocus - viewportBottom)}px`
       );
     } else {
       shell.style.removeProperty('--shopping-keyboard-bottom');
