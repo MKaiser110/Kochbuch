@@ -52,7 +52,6 @@ export function openProductCatalog() {
       const heading = document.createElement('div');
       heading.className = 'catalog-category-heading';
       heading.innerHTML = `
-        <button type="button" class="catalog-drag-handle catalog-category-drag" aria-label="Kategorie verschieben"></button>
         <button type="button" class="catalog-category-toggle" aria-label="Kategorie einklappen" aria-expanded="true"></button>
         <h3>${escapeHtml(category)}</h3>
         <button type="button" class="catalog-category-remove" aria-label="Kategorie entfernen" title="Kategorie entfernen">×</button>
@@ -77,11 +76,11 @@ export function openProductCatalog() {
 
       products
         .filter(product => (product.category || 'Sonstiges') === category)
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }))
         .forEach(product => grid.append(createCatalogRow(product, dialog, renderCatalog)));
 
       section.append(heading, grid);
-      setupCategoryDrag(section, heading.querySelector('.catalog-category-drag'));
-      setupProductDropZone(section, grid);
       list.append(section);
     });
   }
@@ -178,7 +177,6 @@ function createCatalogRow(product, parentDialog, renderCatalog) {
   row.className = 'shopping-catalog-row';
   row.dataset.productId = product.id;
   row.innerHTML = `
-    <button type="button" class="catalog-drag-handle catalog-product-drag" aria-label="Produkt verschieben"></button>
     <span class="catalog-icon">${productIconMarkup(product)}</span>
     <span class="catalog-product-name" title="${escapeHtml(product.name)}">${escapeHtml(product.name)}</span>
     <span class="catalog-actions">
@@ -195,7 +193,6 @@ function createCatalogRow(product, parentDialog, renderCatalog) {
     saveShoppingState();
     renderCatalog();
   });
-  setupCatalogProductDrag(row, product);
   return row;
 }
 
@@ -309,202 +306,6 @@ function removeCatalogCategory(category) {
     dialog.close();
     openProductCatalog();
   }
-}
-
-function setupCatalogProductDrag(row, product) {
-  const handle = row.querySelector('.catalog-product-drag');
-  handle.draggable = true;
-
-  handle.addEventListener('dragstart', event => {
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/product-id', product.id);
-    row.classList.add('catalog-dragging');
-  });
-  handle.addEventListener('dragend', () => row.classList.remove('catalog-dragging'));
-
-  let pointerStart = null;
-  let ghost = null;
-  handle.addEventListener('pointerdown', event => {
-    if (event.pointerType === 'mouse') return;
-    pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
-    handle.setPointerCapture(event.pointerId);
-  });
-  handle.addEventListener('pointermove', event => {
-    if (!pointerStart || event.pointerId !== pointerStart.id) return;
-    if (!ghost && Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) < 6) return;
-    event.preventDefault();
-    if (!ghost) {
-      ghost = row.cloneNode(true);
-      ghost.style.position = 'fixed';
-      ghost.style.zIndex = '1000';
-      ghost.style.width = `${row.offsetWidth}px`;
-      ghost.style.pointerEvents = 'none';
-      ghost.style.opacity = '.85';
-      row.classList.add('catalog-dragging');
-      document.body.appendChild(ghost);
-    }
-    ghost.style.left = `${event.clientX - ghost.offsetWidth / 2}px`;
-    ghost.style.top = `${event.clientY - 25}px`;
-  });
-  handle.addEventListener('pointerup', event => {
-    if (!pointerStart || event.pointerId !== pointerStart.id) return;
-    if (ghost) {
-      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.catalog-section');
-      const targetRow = document.elementFromPoint(event.clientX, event.clientY)?.closest('.shopping-catalog-row');
-      if (target) {
-        const category = target.dataset.category;
-        const rect = targetRow?.getBoundingClientRect();
-        moveCatalogProduct(product.id, category, targetRow?.dataset.productId, targetRow && rect && event.clientY > rect.top + rect.height / 2);
-        saveShoppingState();
-        const dialog = target.closest('.catalog-dialog');
-        if (dialog) {
-          dialog.close();
-          openProductCatalog();
-        }
-      }
-      ghost.remove();
-      ghost = null;
-      row.classList.remove('catalog-dragging');
-    }
-    pointerStart = null;
-  });
-  handle.addEventListener('pointercancel', () => {
-    ghost?.remove();
-    ghost = null;
-    pointerStart = null;
-    row.classList.remove('catalog-dragging');
-  });
-}
-
-function setupProductDropZone(section, grid) {
-  grid.addEventListener('dragover', event => {
-    if (!Array.from(event.dataTransfer.types).includes('text/product-id')) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  });
-  grid.addEventListener('drop', event => {
-    const productId = event.dataTransfer.getData('text/product-id');
-    if (!productId) return;
-    event.preventDefault();
-    const targetRow = event.target.closest('.shopping-catalog-row');
-    const rect = targetRow?.getBoundingClientRect();
-    const insertAfter = targetRow && rect ? event.clientY > rect.top + rect.height / 2 : false;
-    moveCatalogProduct(productId, section.dataset.category, targetRow?.dataset.productId, insertAfter);
-    saveShoppingState();
-    const dialog = section.closest('.catalog-dialog');
-    if (dialog) {
-      dialog.close();
-      openProductCatalog();
-    }
-  });
-}
-
-function moveCatalogProduct(productId, category, targetProductId = null, insertAfter = false) {
-  const product = products.find(item => item.id === productId);
-  if (!product) return;
-  product.category = category;
-  items.filter(item => item.productId === productId).forEach(item => { item.category = category; });
-  products.splice(products.indexOf(product), 1);
-  if (targetProductId) {
-    const targetIndex = products.findIndex(item => item.id === targetProductId);
-    if (targetIndex >= 0) products.splice(targetIndex + (insertAfter ? 1 : 0), 0, product);
-    else products.push(product);
-  } else {
-    const lastIndex = products.reduce((last, item, index) =>
-      item.category === category ? index : last, -1);
-    products.splice(lastIndex + 1, 0, product);
-  }
-}
-
-function setupCategoryDrag(section, handle) {
-  handle.draggable = true;
-  handle.addEventListener('dragstart', event => {
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/category-name', section.dataset.category);
-    section.classList.add('catalog-dragging');
-  });
-  handle.addEventListener('dragend', () => {
-    section.classList.remove('catalog-dragging');
-  });
-  section.addEventListener('dragover', event => {
-    if (!Array.from(event.dataTransfer.types).includes('text/category-name')) return;
-    event.preventDefault();
-  });
-  section.addEventListener('drop', event => {
-    const category = event.dataTransfer.getData('text/category-name');
-    if (!category || category === section.dataset.category) return;
-    event.preventDefault();
-    const rect = section.getBoundingClientRect();
-    const insertAfter = event.clientY > rect.top + rect.height / 2;
-    moveCatalogCategory(category, section.dataset.category, insertAfter);
-    saveShoppingState();
-    const dialog = section.closest('.catalog-dialog');
-    if (dialog) {
-      dialog.close();
-      openProductCatalog();
-    }
-  });
-
-  let pointerStart = null;
-  let ghost = null;
-  handle.addEventListener('pointerdown', event => {
-    if (event.pointerType === 'mouse') return;
-    pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
-    handle.setPointerCapture(event.pointerId);
-  });
-  handle.addEventListener('pointermove', event => {
-    if (!pointerStart || event.pointerId !== pointerStart.id) return;
-    if (!ghost && Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) < 6) return;
-    event.preventDefault();
-    if (!ghost) {
-      ghost = section.cloneNode(true);
-      ghost.style.position = 'fixed';
-      ghost.style.zIndex = '1000';
-      ghost.style.width = `${section.offsetWidth}px`;
-      ghost.style.pointerEvents = 'none';
-      ghost.style.opacity = '.85';
-      section.classList.add('catalog-dragging');
-      document.body.appendChild(ghost);
-    }
-    ghost.style.left = `${event.clientX - ghost.offsetWidth / 2}px`;
-    ghost.style.top = `${event.clientY - 20}px`;
-  });
-  handle.addEventListener('pointerup', event => {
-    if (!pointerStart || event.pointerId !== pointerStart.id) return;
-    if (ghost) {
-      const target = document.elementFromPoint(event.clientX, event.clientY)?.closest('.catalog-section');
-      if (target && target !== section) {
-        const rect = target.getBoundingClientRect();
-        moveCatalogCategory(section.dataset.category, target.dataset.category,
-          event.clientY > rect.top + rect.height / 2);
-        saveShoppingState();
-        const dialog = target.closest('.catalog-dialog');
-        if (dialog) {
-          dialog.close();
-          openProductCatalog();
-        }
-      }
-      ghost.remove();
-      ghost = null;
-      section.classList.remove('catalog-dragging');
-    }
-    pointerStart = null;
-  });
-  handle.addEventListener('pointercancel', () => {
-    ghost?.remove();
-    ghost = null;
-    pointerStart = null;
-    section.classList.remove('catalog-dragging');
-  });
-}
-
-function moveCatalogCategory(category, targetCategory, insertAfter) {
-  const from = catalogCategories.indexOf(category);
-  const to = catalogCategories.indexOf(targetCategory);
-  if (from < 0 || to < 0) return;
-  catalogCategories.splice(from, 1);
-  const adjustedTo = catalogCategories.indexOf(targetCategory);
-  catalogCategories.splice(adjustedTo + (insertAfter ? 1 : 0), 0, category);
 }
 
 function setCategoryCollapsed(toggle, grid, collapsed) {

@@ -1,7 +1,10 @@
+import { extendedProductCatalog } from './extended-product-catalog.js';
+
 const STORAGE_KEY = 'kochbuch-shopping-v1';
 const CATALOG_STORAGE_KEY = 'kochbuch-products-v1';
 const CATALOG_CATEGORY_KEY = 'kochbuch-product-categories-v1';
 const CATALOG_COLLAPSED_KEY = 'kochbuch-product-categories-collapsed-v1';
+const CATALOG_EXTENDED_MIGRATION_KEY = 'kochbuch-products-extended-v1';
 
 const defaultProducts = [
   ['Obst & Gemüse','Apfel','🍎'],['Obst & Gemüse','Banane','🍌'],['Obst & Gemüse','Zitrone','🍋'],['Obst & Gemüse','Tomate','🍅'],['Obst & Gemüse','Kartoffel','🥔'],['Obst & Gemüse','Zwiebel','🧅'],['Obst & Gemüse','Knoblauch','🧄'],['Obst & Gemüse','Karotte','🥕'],['Obst & Gemüse','Paprika','🫑'],['Obst & Gemüse','Gurke','🥒'],['Obst & Gemüse','Brokkoli','🥦'],['Obst & Gemüse','Salat','🥬'],['Obst & Gemüse','Champignons','🍄'],['Obst & Gemüse','Avocado','🥑'],
@@ -22,6 +25,27 @@ function readStoredArray(key, fallback) {
 }
 
 export let products = readStoredArray(CATALOG_STORAGE_KEY, defaultProducts);
+
+const hasExtendedCatalogMigration = Boolean(localStorage.getItem(CATALOG_EXTENDED_MIGRATION_KEY));
+const extendedProducts = extendedProductCatalog.map(([category, name, icon]) => ({
+  id: crypto.randomUUID(),
+  category,
+  name,
+  icon,
+}));
+
+if (!hasExtendedCatalogMigration) {
+  const knownNames = new Set(products.map(product =>
+    String(product.name || '').trim().toLocaleLowerCase('de')));
+  for (const product of extendedProducts) {
+    if (!knownNames.has(product.name.trim().toLocaleLowerCase('de'))) {
+      products.push(product);
+      knownNames.add(product.name.trim().toLocaleLowerCase('de'));
+    }
+  }
+  localStorage.setItem(CATALOG_STORAGE_KEY, JSON.stringify(products));
+  localStorage.setItem(CATALOG_EXTENDED_MIGRATION_KEY, '1');
+}
 export const items = readStoredArray(STORAGE_KEY, []);
 
 export const defaultCatalogCategories = [
