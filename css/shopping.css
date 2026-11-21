@@ -137,12 +137,11 @@
   font-size:16px
 }
 body.shopping-keyboard-open .shopping-search-wrap {
-  position:absolute;
-  right:var(--shell-inset);
-  bottom:calc(var(--shell-safe-area-bottom) + var(--shopping-keyboard-bottom, 0px));
-  left:var(--shell-inset);
-  width:auto;
-  max-width:720px;
+  position:relative;
+  right:auto;
+  bottom:auto;
+  left:auto;
+  width:min(100%,720px);
   margin:0 auto;
   padding-bottom:0
 }

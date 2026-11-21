@@ -198,6 +198,10 @@ body.shopping-active #app-shell {
   grid-template-rows: auto auto minmax(0, 1fr) auto auto;
 }
 
+body.shopping-keyboard-open #app-shell {
+  grid-template-rows: auto auto minmax(0, 1fr) auto var(--shopping-keyboard-bottom, 0px);
+}
+
 body.shopping-active .topbar { grid-row: 1; }
 body.shopping-active #connection-status { grid-row: 2; }
 body.shopping-active #app { grid-row: 3; }
