@@ -16,7 +16,8 @@
   transition: border-color 150ms ease, background-color 150ms ease;
 }
 #search::placeholder, #ingredient-filter-search::placeholder { color: var(--ink-soft); opacity: 1; }
-#search:focus, #ingredient-filter-search:focus { border-color: var(--line-strong); background-color: var(--surface); }
+#search:focus, #ingredient-filter-search:focus { border-color: var(--ink); background-color: var(--surface); }
+#search:focus-visible, #ingredient-filter-search:focus-visible { outline-color: var(--ink); }
 
 .chips {
   display: flex;

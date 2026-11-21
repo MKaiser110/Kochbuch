@@ -136,6 +136,13 @@
   color:var(--ink);
   font-size:16px
 }
+.shopping-search-wrap input:focus {
+  border-color:var(--ink);
+  background-color:var(--surface)
+}
+.shopping-search-wrap input:focus-visible {
+  outline-color:var(--ink)
+}
 body.shopping-keyboard-open .shopping-search-wrap {
   position:fixed;
   top:var(--shopping-search-top, 0px);
@@ -388,13 +395,24 @@ body.shopping-keyboard-open .shopping-search-wrap {
 }
 .ingredient-choice-tile {
   position:relative;
+  height:auto;
+  min-height:164px;
+  max-height:none;
+  overflow:visible;
   border-color:var(--line);
   box-shadow:none;
   text-align:left
 }
+.ingredient-choice-tile .product-name {
+  display:block;
+  max-height:none;
+  overflow:visible;
+  -webkit-line-clamp:unset;
+  overflow-wrap:anywhere
+}
 .ingredient-choice-tile.selected {
-  border:2px solid var(--focus);
-  box-shadow:0 0 0 2px color-mix(in srgb,var(--focus) 18%,transparent)
+  border:2px solid var(--ink);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--ink) 18%,transparent)
 }
 .ingredient-choice-indicator {
   position:absolute;
@@ -411,8 +429,8 @@ body.shopping-keyboard-open .shopping-search-wrap {
 }
 .ingredient-choice-tile.selected .ingredient-choice-indicator {
   display:grid;
-  border-color:var(--focus);
-  background:var(--focus);
+  border-color:var(--ink);
+  background:var(--ink);
   color:var(--surface)
 }
 .ingredient-choice-indicator svg {
@@ -446,7 +464,7 @@ body.shopping-keyboard-open .shopping-search-wrap {
   display:flex;
   flex-direction:column;
   width:min(720px,calc(100vw - 28px));
-  max-height:min(88dvh,760px);
+  max-height:min(80dvh,680px);
   overflow:hidden;
   padding:22px
 }
@@ -552,7 +570,7 @@ body.shopping-keyboard-open .shopping-search-wrap {
   gap:8px
   }
 .ingredient-choice-dialog {
-  max-height:90dvh;
+  max-height:80dvh;
   padding:18px 14px
 }
 .ingredient-choice-tile .product-name {
