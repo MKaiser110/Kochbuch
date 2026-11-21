@@ -58,6 +58,8 @@ export function openProductCatalog() {
         <button type="button" class="catalog-category-remove" aria-label="Kategorie entfernen" title="Kategorie entfernen">×</button>
       `;
       heading.querySelector('.catalog-category-remove').addEventListener('click', () => removeCatalogCategory(category));
+      const grid = document.createElement('div');
+      grid.className = 'catalog-grid';
       const toggle = heading.querySelector('.catalog-category-toggle');
       const collapsed = collapsedCatalogCategories.includes(category);
       setCategoryCollapsed(toggle, grid, collapsed);
@@ -72,8 +74,6 @@ export function openProductCatalog() {
         }
         saveShoppingState();
       });
-      const grid = document.createElement('div');
-      grid.className = 'catalog-grid';
 
       products
         .filter(product => (product.category || 'Sonstiges') === category)
