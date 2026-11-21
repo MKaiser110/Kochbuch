@@ -68,6 +68,17 @@
   text-transform: uppercase;
 }
 .ingredient-list { margin: 0; padding: 0; list-style: none; }
+.ingredient-list .ingredient-category {
+  margin-top: 13px;
+  padding: 10px 0 5px;
+  border-bottom: 0;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.ingredient-list .ingredient-category:first-child { margin-top: 0; padding-top: 0; }
 .ingredient-list li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .ingredient-list .amt { margin-left: 12px; color: var(--ink-soft); white-space: nowrap; }
 .step-list { padding-left: 22px; }

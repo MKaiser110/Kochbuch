@@ -62,6 +62,7 @@
 .ing-row input:nth-child(1) { flex: 0 0 74px; }
 .ing-row input:nth-child(2) { flex: 0 0 78px; }
 .ing-row input:nth-child(3) { flex: 1; }
+.ing-row input:nth-child(4) { flex: 0 1 150px; }
 .step-row textarea { flex: 1; min-width: 0; overflow-y: hidden; resize: none; }
 .row-remove { width: 40px; height: 40px; flex: 0 0 auto; border: 0; border-radius: 9px; background: transparent; color: var(--ink-soft); font-size: 1.3rem; cursor: pointer; }
 .row-remove:hover { background: var(--surface-soft); }
@@ -74,3 +75,12 @@
 #scan-preview img, #image-preview img { max-width: 100%; margin-top: 10px; border-radius: 14px; }
 #image-preview img { margin-top: 2px; }
 .tag-suggestions { flex-wrap: wrap; overflow: visible; margin: -5px 0 16px; padding-top: 0; }
+@media (max-width: 560px) {
+  .ing-row { display: grid; grid-template-columns: 74px 78px minmax(0, 1fr) 40px; }
+  .ing-row input:nth-child(1),
+  .ing-row input:nth-child(2),
+  .ing-row input:nth-child(3),
+  .ing-row input:nth-child(4) { width: 100%; }
+  .ing-row input:nth-child(4) { grid-column: 1 / 4; grid-row: 2; }
+  .ing-row .row-remove { grid-column: 4; grid-row: 1 / 3; }
+}

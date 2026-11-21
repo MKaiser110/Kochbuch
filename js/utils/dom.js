@@ -33,8 +33,26 @@ export function makeChip(label, active, onClick) {
 /** Füllt eine <ul class="ingredient-list"> mit bereits skalierten Zutaten (Name + Menge). */
 export function fillIngredientList(listEl, ingredients) {
   listEl.innerHTML = '';
+  let currentCategory = null;
+  let currentGroup = null;
+
   ingredients.forEach(ing => {
+    const category = ing.category?.trim() || null;
+    if (category !== currentCategory) {
+      if (category) {
+        const heading = document.createElement('li');
+        heading.className = 'ingredient-category';
+        heading.textContent = category;
+        listEl.appendChild(heading);
+        currentGroup = heading;
+      } else if (currentCategory) {
+        currentGroup = null;
+      }
+      currentCategory = category;
+    }
+
     const li = document.createElement('li');
+    li.className = 'ingredient-item';
     const name = document.createElement('span');
     name.textContent = ing.name;
     const amount = document.createElement('span');

@@ -123,6 +123,7 @@ function setupRows(recipe) {
       <input class="ing-amount" type="text" inputmode="decimal" name="ing-amount-${n}" autocomplete="off" placeholder="Menge" value="${escapeHtml(String(ing.amount ?? ''))}">
       <input class="ing-unit" type="text" name="ing-unit-${n}" autocomplete="off" placeholder="Einheit" value="${escapeHtml(ing.unit ?? '')}">
       <input class="ing-name" type="text" name="ing-name-${n}" autocomplete="off" placeholder="Zutat" value="${escapeHtml(ing.name ?? '')}">
+      <input class="ing-category" type="text" name="ing-category-${n}" autocomplete="off" placeholder="Kategorie (optional)" value="${escapeHtml(ing.category ?? '')}">
       <button type="button" class="row-remove" aria-label="Entfernen">×</button>
     `;
     row.querySelector('.row-remove').addEventListener('click', () => row.remove());
@@ -163,8 +164,9 @@ function readIngredients(ingredientRows) {
     const amountRaw = row.querySelector('.ing-amount').value.trim();
     const unit = row.querySelector('.ing-unit').value.trim() || null;
     const name = row.querySelector('.ing-name').value.trim();
+    const category = row.querySelector('.ing-category').value.trim() || null;
     const amount = amountRaw === '' ? null : parseFloat(amountRaw.replace(',', '.'));
-    return { amount: Number.isNaN(amount) ? null : amount, unit, name };
+    return { amount: Number.isNaN(amount) ? null : amount, unit, name, category };
   }).filter(i => i.name);
 }
 

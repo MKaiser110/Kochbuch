@@ -31,10 +31,15 @@ export function normalizeIngredients(items) {
       if (!line) continue;
       const parsed = parseIngredientLine(line);
       const item = typeof raw === 'object' && raw !== null && raw.name
-        ? { amount: finiteOrNull(raw.amount), unit: cleanText(raw.unit) || null, name: cleanText(raw.name) }
-        : parsed;
+        ? {
+            amount: finiteOrNull(raw.amount),
+            unit: cleanText(raw.unit) || null,
+            name: cleanText(raw.name),
+            category: cleanText(raw.category) || null,
+          }
+        : { ...parsed, category: cleanText(raw?.category) || null };
       if (!item.name) continue;
-      const key = `${item.amount ?? ''}|${(item.unit || '').toLocaleLowerCase()}|${item.name.toLocaleLowerCase()}`;
+      const key = `${item.amount ?? ''}|${(item.unit || '').toLocaleLowerCase()}|${item.name.toLocaleLowerCase()}|${(item.category || '').toLocaleLowerCase()}`;
       if (seen.has(key)) continue;
       seen.add(key);
       result.push(item);

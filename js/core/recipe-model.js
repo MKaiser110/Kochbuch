@@ -22,7 +22,7 @@ export function blankRecipe() {
     notes: '',
     servingsBase: 4,
     servingsKnown: false,
-    ingredients: [],      // [{ name, amount, unit }]
+    ingredients: [],      // [{ name, amount, unit, category }]
     steps: [],            // [string]
     importWarnings: [],
     reviewRequired: false,
@@ -76,6 +76,14 @@ export function migrateRecipe(recipe) {
   if (!recipe) return recipe;
   if (!Array.isArray(recipe.tags)) {
     recipe.tags = normalizeTags(recipe.category ? [recipe.category] : []);
+  }
+  if (Array.isArray(recipe.ingredients)) {
+    recipe.ingredients = recipe.ingredients.map(ing => ({
+      ...ing,
+      category: typeof ing.category === 'string' ? ing.category.replace(/\s+/g, ' ').trim() || null : null,
+    }));
+  } else {
+    recipe.ingredients = [];
   }
   recipe.favorite = Boolean(recipe.favorite);
   recipe.rating = clampRating(recipe.rating);

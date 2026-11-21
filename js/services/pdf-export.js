@@ -162,7 +162,23 @@ function drawIngredients(writer, recipe, servings) {
   const AMOUNT_COL = 34;
   const scaled = scaleIngredients(recipe.ingredients, recipe.servingsBase, servings);
   doc.setFontSize(10.5);
+  let currentCategory = null;
   for (const ing of scaled) {
+    const category = typeof ing.category === 'string' ? ing.category.trim() : '';
+    if (category && category !== currentCategory) {
+      writer.ensureSpace(10);
+      writer.y += 3;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(105, 105, 105);
+      doc.text(sanitize(category).toUpperCase(), MARGIN, writer.y);
+      writer.y += 6;
+      doc.setFontSize(10.5);
+      doc.setTextColor(43, 43, 43);
+      currentCategory = category;
+    } else if (!category) {
+      currentCategory = null;
+    }
     const amount = sanitize(formatAmount(ing.amount, ing.unit));
     const nameLines = doc.splitTextToSize(sanitize(ing.name), CONTENT_W - AMOUNT_COL);
     const rowH = nameLines.length * 5.2;
