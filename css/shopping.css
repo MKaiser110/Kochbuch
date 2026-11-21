@@ -408,7 +408,11 @@ body.shopping-keyboard-open .shopping-search-wrap {
   max-height:none;
   overflow:visible;
   -webkit-line-clamp:unset;
-  overflow-wrap:anywhere
+  overflow-wrap:break-word
+}
+.ingredient-choice-tile:focus-visible {
+  outline:none;
+  border-color:var(--ink)
 }
 .ingredient-choice-tile.selected {
   border:2px solid var(--ink);
