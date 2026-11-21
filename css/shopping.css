@@ -585,7 +585,9 @@ body.shopping-keyboard-open .shopping-search-wrap {
 }
 @media(max-width:430px) {
   .catalog-dialog {
-    max-height:90dvh;
+    height:min(82dvh,700px);
+    max-height:calc(100dvh - env(safe-area-inset-top,0px) - 24px);
+    margin:calc(env(safe-area-inset-top,0px) + 12px) auto 12px;
     padding:20px 14px
   }
   .catalog-dialog .shopping-dialog-actions {
