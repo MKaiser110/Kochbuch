@@ -153,7 +153,7 @@ body.shopping-keyboard-open .shopping-search-wrap {
   transform:translateX(-50%);
   width:min(calc(100% - 16px),720px);
   margin:0;
-  padding-bottom:10px
+  padding-bottom:0
 }
 .shopping-suggestions {
   position:absolute;
