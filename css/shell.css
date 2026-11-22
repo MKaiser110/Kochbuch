@@ -68,6 +68,7 @@ body.shopping-search-focused #app-shell {
   min-height: 76px;
   padding: calc(env(safe-area-inset-top) + 14px) 22px 12px;
   border-radius: 26px 26px 0 0;
+  overscroll-behavior: none;
 }
 
 .brand-mark {

@@ -1,6 +1,13 @@
 /* controls.css — Suchfeld, Chips, Sortier-Menü, sekundäre Buttons, Zutatenfilter-Button. */
 
-.controls { margin: 0 auto 24px; }
+.controls {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  margin: 0 auto 24px;
+  padding: 0 0 8px;
+  background: var(--surface);
+}
 #search, #ingredient-filter-search {
   width: 100%;
   min-height: 48px;

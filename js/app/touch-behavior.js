@@ -2,6 +2,11 @@ export function disablePageZoom() {
   let lastTap = null;
   let touchMoved = false;
 
+  const isProtectedScrollArea = target => target instanceof Element
+    && target.closest('.topbar, .controls, .shopping-search-wrap, .shopping-nav');
+  const isHorizontalScrollArea = target => target instanceof Element
+    && target.closest('.chips, .shopping-suggestions');
+
   document.addEventListener('touchstart', event => {
     if (event.touches.length === 1) touchMoved = false;
     if (event.touches.length > 1 && event.cancelable) event.preventDefault();
@@ -11,6 +16,21 @@ export function disablePageZoom() {
     touchMoved = true;
     lastTap = null;
     if (event.touches.length > 1 && event.cancelable) event.preventDefault();
+    if (event.touches.length === 1
+      && isProtectedScrollArea(event.target)
+      && !isHorizontalScrollArea(event.target)
+      && event.cancelable) {
+      event.preventDefault();
+    }
+  }, { capture: true, passive: false });
+
+  document.addEventListener('wheel', event => {
+    if (Math.abs(event.deltaY) > Math.abs(event.deltaX)
+      && isProtectedScrollArea(event.target)
+      && !isHorizontalScrollArea(event.target)
+      && event.cancelable) {
+      event.preventDefault();
+    }
   }, { capture: true, passive: false });
 
   document.addEventListener('touchend', event => {
