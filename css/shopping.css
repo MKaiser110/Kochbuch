@@ -624,7 +624,7 @@ body.shopping-keyboard-open .shopping-search-wrap {
   color:var(--ink-soft);
   text-align:center
 }
-.shopping-styles-ready .shopping-recipe-action {
+.shopping-recipe-action {
   display:inline-flex;
   align-items:center;
   gap:9px;
@@ -639,7 +639,7 @@ body.shopping-keyboard-open .shopping-search-wrap {
   font-weight:650;
   cursor:pointer
 }
-.shopping-styles-ready .shopping-recipe-action svg {
+.shopping-recipe-action svg {
   width:19px;
   height:19px;
   stroke:currentColor;
