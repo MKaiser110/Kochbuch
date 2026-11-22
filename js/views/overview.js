@@ -11,6 +11,9 @@ export async function renderOverview() {
   runViewCleanup();
   setPageTitle('Kochbuch');
   mountTemplate('tpl-overview');
+  const controls = document.getElementById('overview-controls');
+  document.getElementById('app-shell').insertBefore(controls, appRoot);
+  document.body.classList.add('overview-active');
 
   const seq = currentNavigation();
   const recipes = await getAllRecipes();
@@ -55,7 +58,7 @@ function setupSearch(renderFiltered) {
 
 /** Sortier-Dropdown mit Tastaturbedienung. Registriert die Aufräumfunktion der Ansicht. */
 function setupSortMenu(onSortChanged) {
-  const sortControl = appRoot.querySelector('.sort-control');
+  const sortControl = document.querySelector('#overview-controls .sort-control');
   const sortTrigger = document.getElementById('sort-select');
   const sortMenu = document.getElementById('sort-menu');
   const sortOptions = [...sortMenu.querySelectorAll('.sort-option')];

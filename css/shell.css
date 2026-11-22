@@ -137,6 +137,8 @@ body.shopping-search-focused #app-shell {
   border-radius: 0 0 26px 26px;
 }
 
+body.overview-active #app { padding-top: 0; }
+
 #connection-status {
   width: min(100%, 980px);
   margin: 0 auto;

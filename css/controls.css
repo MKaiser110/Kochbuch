@@ -1,11 +1,10 @@
 /* controls.css — Suchfeld, Chips, Sortier-Menü, sekundäre Buttons, Zutatenfilter-Button. */
 
 .controls {
-  position: sticky;
-  top: 0;
-  z-index: 4;
-  margin: -8px auto 24px;
-  padding: 8px 0 8px;
+  flex: 0 0 auto;
+  width: min(100%, 980px);
+  margin: 0 auto 24px;
+  padding: 8px 22px;
   background: var(--surface);
 }
 #search, #ingredient-filter-search {

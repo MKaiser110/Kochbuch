@@ -41,6 +41,8 @@ function route() {
   if (previousHash === '' && hash.startsWith('recipe/')) overviewScrollY = app.scrollTop;
   currentHash = hash;
   app.scrollTop = 0;
+  document.getElementById('overview-controls')?.remove();
+  document.body.classList.remove('overview-active');
   closeSheet();
   startNavigation();
   document.body.classList.toggle('cook-mode', hash.startsWith('cook/'));

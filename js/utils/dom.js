@@ -16,6 +16,8 @@ export function cloneTemplate(templateId) {
 
 /** Ersetzt den Inhalt von #app durch das geklonte Template. */
 export function mountTemplate(templateId) {
+  document.getElementById('overview-controls')?.remove();
+  document.body.classList.remove('overview-active');
   const fragment = cloneTemplate(templateId);
   appRoot.innerHTML = '';
   appRoot.appendChild(fragment);
