@@ -45,8 +45,8 @@ export function setupShoppingLayout() {
     }
     if (keyboardOpen) {
       const searchTop = Math.max(
-        viewportTop,
-        viewportTop + viewportHeight - searchWrap.offsetHeight
+        viewportTop + 8,
+        viewportTop + viewportHeight - searchWrap.offsetHeight - 10
       );
       shell.style.setProperty('--shopping-search-top', `${searchTop}px`);
     } else {
