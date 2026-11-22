@@ -132,7 +132,6 @@ body.shopping-search-focused #app-shell {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   padding: 8px 22px 36px;
   border-radius: 0 0 26px 26px;
@@ -196,7 +195,6 @@ body.shopping-active #app {
   flex: 1 1 0;
   overflow-y: auto;
   overscroll-behavior-y: contain;
-  -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
 }
 
